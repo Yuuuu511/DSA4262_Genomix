@@ -1,0 +1,14 @@
+{
+  "json_sites": 121838,
+  "matched_sites": 121838,
+  "train_sites": 98006,
+  "test_sites": 23832,
+  "train_genes": 3081,
+  "test_genes": 771,
+  "train_positive_fraction": 0.043783033691814785,
+  "test_positive_fraction": 0.04968110104061766,
+  "roc_auc": 0.9140846142968295,
+  "pr_auc": 0.4954994055782169,
+  "random_pr_auc": 0.04968110104061766,
+  "model": "hgb"
+}
