@@ -216,3 +216,30 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Datasets
+data/
+data0/
+data1/
+data2/
+datasets/
+*.json.gz
+*.info.labelled
+
+# Trained models
+*.joblib
+*.pkl
+*.pickle
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Local configuration
+.env
+.env.*
+.DS_Store

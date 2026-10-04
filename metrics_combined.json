@@ -1,0 +1,54 @@
+{
+  "datasets": [
+    {
+      "source_id": 0,
+      "json": "data/dataset0.json.gz",
+      "labels": "data/data.info.labelled",
+      "json_sites": 121838,
+      "matched_sites": 121838,
+      "unmatched_sites": 0
+    },
+    {
+      "source_id": 1,
+      "json": "data1/dataset1.json.gz",
+      "labels": "data1/data.info.labelled",
+      "json_sites": 90810,
+      "matched_sites": 90810,
+      "unmatched_sites": 0
+    }
+  ],
+  "json_sites": 212648,
+  "matched_sites": 212648,
+  "unique_sites": 145328,
+  "repeated_site_observations": 67320,
+  "train_sites": 170456,
+  "test_sites": 42192,
+  "split_by": "transcript",
+  "train_groups": 5081,
+  "test_groups": 1271,
+  "unmapped_gene_sites": 15137,
+  "train_genes": 3221,
+  "test_genes": 980,
+  "train_positive_fraction": 0.05691791430046464,
+  "test_positive_fraction": 0.05607698141827835,
+  "roc_auc": 0.8740036381420633,
+  "pr_auc": 0.42769147019376735,
+  "random_pr_auc": 0.05607698141827835,
+  "model": "hgb",
+  "per_dataset_test": [
+    {
+      "source_id": 0,
+      "test_sites": 23782,
+      "positive_fraction": 0.04419308720881339,
+      "roc_auc": 0.9214818779234952,
+      "pr_auc": 0.4685695697625747
+    },
+    {
+      "source_id": 1,
+      "test_sites": 18410,
+      "positive_fraction": 0.07142857142857142,
+      "roc_auc": 0.83270086532762,
+      "pr_auc": 0.4024567289842174
+    }
+  ]
+}
