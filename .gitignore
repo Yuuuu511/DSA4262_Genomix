@@ -1,0 +1,52 @@
+
+# Data
+data/
+data0/
+data1/
+data2/
+*.json.gz
+*.labelled
+
+# Models / experiment outputs
+*.joblib
+runs/
+outputs/
+results/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+data/
+data0/
+data1/
+data2/
+*.json.gz
+*.labelled
+
+# Models / experiment outputs
+*.joblib
+runs/
+outputs/
+results/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
