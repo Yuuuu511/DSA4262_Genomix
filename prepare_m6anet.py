@@ -1,0 +1,134 @@
+from pathlib import Path
+import csv
+import gzip
+import json
+
+
+BASE_DIR = Path(__file__).resolve().parent
+MANIFEST_PATH = BASE_DIR / "model_outputs" / "split_manifest.csv"
+OUTPUT_DIR = BASE_DIR / "m6anet_inputs"
+
+DATA_PATHS = {
+    "data0": BASE_DIR / "data0" / "dataset0.json.gz",
+    "data1": BASE_DIR / "data1" / "dataset1.json.gz",
+}
+
+
+def main():
+    # Load the exact held-out sites used in the previous experiment.
+    wanted = {name: set() for name in DATA_PATHS}
+
+    with MANIFEST_PATH.open(newline="") as handle:
+        for row in csv.DictReader(handle):
+            source = row["source_dataset"]
+            if row["split"] == "test" and source in wanted:
+                wanted[source].add(
+                    (
+                        row["transcript_id"],
+                        int(row["transcript_position"]),
+                    )
+                )
+
+    for source, input_path in DATA_PATHS.items():
+        output_path = OUTPUT_DIR / source
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        found = set()
+        eligible_count = 0
+        low_coverage_count = 0
+
+        with gzip.open(input_path, "rt", encoding="utf-8") as input_file, \
+            (output_path / "data.json").open("wb") as json_file, \
+            (output_path / "data.info").open("w", newline="") as info_file:
+            
+            writer = csv.writer(info_file)
+            writer.writerow([
+                "transcript_id",
+                "transcript_position",
+                "n_reads",
+                "start",
+                "end",
+            ])
+
+            for line in input_file:
+                if not line.strip():
+                    continue
+
+                record = json.loads(line)
+
+                for transcript_id, positions in record.items():
+                    for position, sequences in positions.items():
+                        key = (transcript_id, int(position))
+
+                        if key not in wanted[source]:
+                            continue
+
+                        if key in found:
+                            raise ValueError(f"Duplicate site: {source}:{key}")
+                        found.add(key)
+
+                        if len(sequences) != 1:
+                            raise ValueError(f"Unexpected sequences: {key}")
+
+                        sequence, reads = next(iter(sequences.items()))
+
+                        if not reads or any(len(read) != 9 for read in reads):
+                            raise ValueError(f"Unexpected read features: {key}")
+
+                        # m6Anet requires at least 20 reads per site.
+                        if len(reads) < 20:
+                            low_coverage_count += 1
+                            continue
+
+                        # Append synthetic local read IDs for output tracking.
+                        indexed_reads = [
+                            read + [index]
+                            for index, read in enumerate(reads)
+                        ]
+
+                        output_record = {
+                            transcript_id: {
+                                str(int(position)): {
+                                    sequence: indexed_reads
+                                }
+                            }
+                        }
+
+                        encoded = (
+                            json.dumps(
+                                output_record,
+                                separators=(",", ":"),
+                                ensure_ascii=True,
+                            )
+                            + "\n"
+                        ).encode("ascii")
+
+                        # Compute offsets from the newly written JSON file.
+                        start = json_file.tell()
+                        json_file.write(encoded)
+                        end = json_file.tell()
+
+                        writer.writerow([
+                            transcript_id,
+                            int(position),
+                            len(reads),
+                            start,
+                            end,
+                        ])
+                        eligible_count += 1
+
+        missing = wanted[source] - found
+        if missing:
+            raise ValueError(
+                f"{source}: {len(missing)} test sites were not found"
+            )
+
+        print(f"\n{source}")
+        print(f"Requested test sites: {len(wanted[source]):,}")
+        print(f"Prepared sites: {eligible_count:,}")
+        print(f"Excluded sites with fewer than 20 reads: {low_coverage_count:,}")
+        print(f"Input directory: {output_path}")
+
+
+if __name__ == "__main__":
+    main()
