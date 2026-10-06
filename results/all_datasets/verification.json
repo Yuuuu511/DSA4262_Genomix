@@ -1,0 +1,16 @@
+{
+  "automated_tests_passed": 9,
+  "all_observations": 213971,
+  "training_observations": 169525,
+  "test_observations": 44446,
+  "group_overlap": 0,
+  "data2_labels_thresholded_inclusively_at_0_5": true,
+  "data2_raw_labels_preserved": true,
+  "all_data2_conditions_for_each_position_share_outer_split_and_cv_fold": true,
+  "all_folds_group_separated": true,
+  "scaler_matches_training_features_only": true,
+  "test_and_fold_metrics_recomputed_from_csv": true,
+  "prediction_script_real_data_sites_checked": 60,
+  "max_prediction_script_probability_error": 4.440892098500626e-16,
+  "data2_test_mean_predicted_probability": 0.3661818194570225
+}

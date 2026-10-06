@@ -1,0 +1,93 @@
+{
+  "model": "StandardScaler + L2 logistic regression, C=1, no class weighting",
+  "seed": 42,
+  "split": "80/20 by gene; site fractions may differ",
+  "n_features": 45,
+  "train": {
+    "sites": 98006,
+    "genes": 3081,
+    "positives": 4291,
+    "positive_fraction": 0.043783033691814785
+  },
+  "test": {
+    "sites": 23832,
+    "genes": 771,
+    "positives": 1184,
+    "positive_fraction": 0.04968110104061766
+  },
+  "heldout_metrics": {
+    "roc_auc": 0.9028781850554193,
+    "average_precision": 0.49907486299387754,
+    "pr_auc_trapezoidal": 0.4983875113000847,
+    "log_loss": 0.12434225849663234,
+    "brier_score": 0.03279070464252479
+  },
+  "constant_baseline_metrics": {
+    "roc_auc": 0.5,
+    "average_precision": 0.04968110104061766,
+    "pr_auc_trapezoidal": 0.5248405505203089,
+    "log_loss": 0.19797396128079253,
+    "brier_score": 0.04724767643846062
+  },
+  "gene_overlap": 0,
+  "transcript_overlap": 0,
+  "source": {
+    "data_sha256": "622410b2918692b75a880b753f1a621e8d892d6dbc13c1f430babc5543a0584e",
+    "labels_sha256": "6758f002db36835c188c9d6fb039b4599494ca9dcc816c26cc22a2c04ee42978",
+    "feature_version": 1,
+    "feature_names": [
+      "mean_minus1_dwell",
+      "mean_minus1_current_sd",
+      "mean_minus1_current_mean",
+      "mean_central_dwell",
+      "mean_central_current_sd",
+      "mean_central_current_mean",
+      "mean_plus1_dwell",
+      "mean_plus1_current_sd",
+      "mean_plus1_current_mean",
+      "sd_minus1_dwell",
+      "sd_minus1_current_sd",
+      "sd_minus1_current_mean",
+      "sd_central_dwell",
+      "sd_central_current_sd",
+      "sd_central_current_mean",
+      "sd_plus1_dwell",
+      "sd_plus1_current_sd",
+      "sd_plus1_current_mean",
+      "log1p_read_count",
+      "motif_AAACA",
+      "motif_AAACC",
+      "motif_AAACT",
+      "motif_AGACA",
+      "motif_AGACC",
+      "motif_AGACT",
+      "motif_GAACA",
+      "motif_GAACC",
+      "motif_GAACT",
+      "motif_GGACA",
+      "motif_GGACC",
+      "motif_GGACT",
+      "motif_TAACA",
+      "motif_TAACC",
+      "motif_TAACT",
+      "motif_TGACA",
+      "motif_TGACC",
+      "motif_TGACT",
+      "left_base_A",
+      "left_base_C",
+      "left_base_G",
+      "left_base_T",
+      "right_base_A",
+      "right_base_C",
+      "right_base_G",
+      "right_base_T"
+    ]
+  },
+  "versions": {
+    "python": "3.12.14",
+    "numpy": "2.5.3",
+    "scikit_learn": "1.9.1",
+    "joblib": "1.6.0"
+  },
+  "elapsed_seconds": 13.82
+}

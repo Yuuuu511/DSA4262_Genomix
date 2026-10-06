@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "mapping_file": "transcript_gene_map.csv",
+  "mapping_sha256": "4ba473f2d357ee28a3b3eb424935b02e40d69e7fef45b69b053bec0bbd82a2ac",
+  "gene_mapping": {
+    "transcripts": 6352,
+    "unmapped_transcripts": 0,
+    "preferred_gene_source_counts": {
+      "data0_labels": 5333,
+      "SGNEx_Ensembl91": 964,
+      "Ensembl_REST_snapshot": 54,
+      "Ensembl96_patch_GTF": 1
+    },
+    "SGNEx_vs_supplied_transcripts_compared": 5185,
+    "SGNEx_vs_supplied_gene_conflicts": 0,
+    "group_rule": "union gene IDs sharing transcript mappings or Ensembl96 gene names",
+    "preferred_gene_ids": 4486,
+    "conservative_gene_groups": 4379
+  },
+  "label_sources": {
+    "labels0": {
+      "path": "data/data0/data.info.labelled",
+      "sha256": "6758f002db36835c188c9d6fb039b4599494ca9dcc816c26cc22a2c04ee42978"
+    },
+    "labels1": {
+      "path": "data/data1/data.info",
+      "sha256": "05c8441c4d60a6228f79d219bb7240921699495f23052b378cdda432417acaf3"
+    }
+  },
+  "reference_sources": {
+    "annotation": {
+      "url": "https://sg-nex-data.s3.amazonaws.com/data/annotations/txt_file/Homo_sapiens.GRCh38.91.annotations-transcripts.txt",
+      "sha256": "292ca2ab9f5b12a6b923d9e752954f98a74756e518be4f58506fc7960a1e6a8f"
+    },
+    "lookup": {
+      "url": "https://rest.ensembl.org/lookup/id",
+      "method": "POST",
+      "file": "ensembl_lookup.json",
+      "sha256": "4955f09d06d31210f6967f5131a803b3c0f6c263aa151331c016ba64796e1405",
+      "note": "Saved response for 54 transcript IDs; reuse snapshot for stable historical mapping."
+    },
+    "patch_gtf": {
+      "url": "https://ftp.ensembl.org/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.chr_patch_hapl_scaff.gtf.gz",
+      "sha256": "dd4a6cd7fc747f459bc1a475894895ce09e749879be31eece12307bcd7e0e8c4"
+    }
+  },
+  "group_rule": "union gene IDs sharing transcript mappings or Ensembl96 gene names",
+  "note": "Compact mapping preserves the original conservative unions, including alternate patch loci. Labels bind the snapshot to these datasets; label values are not model features or grouping criteria."
+}

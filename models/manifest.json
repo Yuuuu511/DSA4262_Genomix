@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "default_model": "models/baseline_model.joblib",
+  "models": [
+    {
+      "file": "models/data0_model.joblib",
+      "sha256": "c50628766b90400f1aa957640aa020419b5da7cacf378b34afa92b155e0daf25",
+      "original_artifact_sha256": "c50628766b90400f1aa957640aa020419b5da7cacf378b34afa92b155e0daf25",
+      "datasets": [
+        "data0"
+      ],
+      "training_scope": "all data0 sites; submission model",
+      "scikit_learn_version": "1.9.1",
+      "bytes": 3894
+    },
+    {
+      "file": "models/data0_evaluation_model.joblib",
+      "sha256": "df39ff75a88d1bb176166a3be2406861509311a0ae982ec6be0b6a3e12799671",
+      "original_artifact_sha256": "df39ff75a88d1bb176166a3be2406861509311a0ae982ec6be0b6a3e12799671",
+      "datasets": [
+        "data0"
+      ],
+      "training_scope": "80% of data0 genes; held-out evaluation model",
+      "scikit_learn_version": "1.9.1",
+      "bytes": 3906
+    },
+    {
+      "file": "models/data0_data1_model.joblib",
+      "sha256": "641703c907325fabbe0e4b73e7c7d51336753542c818993168822edf319051b0",
+      "original_artifact_sha256": "bcb3dda2cc8af08b0807a29fb116a3561688b46425e8696b89fb4ed4b8b47759",
+      "datasets": [
+        "data0"
+      ],
+      "training_scope": "80% of combined data0/data1 gene groups; 20% reserved for test",
+      "scikit_learn_version": "1.9.1",
+      "bytes": 83902
+    },
+    {
+      "file": "models/baseline_model.joblib",
+      "sha256": "8a8cda9cb4fe4f7253a62fd181577a49dde4d398dffac9975580af405c7f515a",
+      "original_artifact_sha256": "04dc0721e28a9d59def95d8aae4b2cf5a8b72a191833742ad075cd05352ca7d9",
+      "datasets": [
+        "data0",
+        "data1",
+        "data2"
+      ],
+      "training_scope": "80% of combined split groups; 20% reserved for test",
+      "scikit_learn_version": "1.9.1",
+      "bytes": 89871
+    }
+  ]
+}

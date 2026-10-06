@@ -1,0 +1,13 @@
+{
+  "automated_tests_passed": 6,
+  "training_observations": 168802,
+  "test_observations": 43846,
+  "gene_group_overlap": 0,
+  "shared_sites_consistent_across_outer_split_and_cv_folds": true,
+  "scaler_mean_matches_only_outer_training_features": true,
+  "oof_rows_checked": 168802,
+  "test_and_each_fold_metrics_recomputed_from_csv": true,
+  "prediction_script_real_data_sites_checked": 40,
+  "max_prediction_script_probability_error": 2.7755575615628914e-16,
+  "saved_model_excludes_all_test_gene_groups": true
+}

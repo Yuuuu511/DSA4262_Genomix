@@ -1,0 +1,967 @@
+{
+  "trained_at_singapore": "2026-10-05T20:54:28+08:00",
+  "model": "StandardScaler + L2 logistic regression; unweighted observations; 45 features",
+  "all": {
+    "observations": 212648,
+    "positives": 12068,
+    "positive_fraction": 0.05675106278921034,
+    "unique_site_coordinates": 145328,
+    "gene_groups": 4379,
+    "dataset_observations": {
+      "data0": 121838,
+      "data1": 90810
+    }
+  },
+  "train": {
+    "observations": 168802,
+    "positives": 9370,
+    "positive_fraction": 0.05550882098553335,
+    "unique_site_coordinates": 115138,
+    "gene_groups": 3503,
+    "dataset_observations": {
+      "data0": 96462,
+      "data1": 72340
+    }
+  },
+  "test": {
+    "observations": 43846,
+    "positives": 2698,
+    "positive_fraction": 0.06153354924052365,
+    "unique_site_coordinates": 30190,
+    "gene_groups": 876,
+    "dataset_observations": {
+      "data0": 25376,
+      "data1": 18470
+    }
+  },
+  "outer_split": "80/20 of conservative gene groups, GroupShuffleSplit",
+  "seed": 42,
+  "cv": {
+    "folds": 5,
+    "splitter": "StratifiedGroupKFold",
+    "seed": 43,
+    "selection_metric": "mean validation average precision",
+    "candidates": [
+      {
+        "C": 0.01,
+        "folds": [
+          {
+            "fold": 1,
+            "train": {
+              "observations": 135058,
+              "positives": 7505,
+              "positive_fraction": 0.05556871862459092,
+              "unique_site_coordinates": 91681,
+              "gene_groups": 2806,
+              "dataset_observations": {
+                "data0": 77212,
+                "data1": 57846
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1865,
+              "positive_fraction": 0.055269084874348035,
+              "unique_site_coordinates": 23457,
+              "gene_groups": 697,
+              "dataset_observations": {
+                "data0": 19250,
+                "data1": 14494
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8571132954392644,
+              "average_precision": 0.36373086778053315,
+              "pr_auc_trapezoidal": 0.36316918823640026,
+              "log_loss": 0.15847544502373867,
+              "brier_score": 0.04217206138644068
+            }
+          },
+          {
+            "fold": 2,
+            "train": {
+              "observations": 135010,
+              "positives": 7479,
+              "positive_fraction": 0.055395896600251834,
+              "unique_site_coordinates": 91856,
+              "gene_groups": 2803,
+              "dataset_observations": {
+                "data0": 76639,
+                "data1": 58371
+              }
+            },
+            "validation": {
+              "observations": 33792,
+              "positives": 1891,
+              "positive_fraction": 0.05595999053030303,
+              "unique_site_coordinates": 23282,
+              "gene_groups": 700,
+              "dataset_observations": {
+                "data0": 19823,
+                "data1": 13969
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8627448207818906,
+              "average_precision": 0.38532032661687987,
+              "pr_auc_trapezoidal": 0.3848176180889381,
+              "log_loss": 0.15711004167530343,
+              "brier_score": 0.04191749067168129
+            }
+          },
+          {
+            "fold": 3,
+            "train": {
+              "observations": 135049,
+              "positives": 7500,
+              "positive_fraction": 0.05553539826285274,
+              "unique_site_coordinates": 92394,
+              "gene_groups": 2804,
+              "dataset_observations": {
+                "data0": 76985,
+                "data1": 58064
+              }
+            },
+            "validation": {
+              "observations": 33753,
+              "positives": 1870,
+              "positive_fraction": 0.05540248274227476,
+              "unique_site_coordinates": 22744,
+              "gene_groups": 699,
+              "dataset_observations": {
+                "data0": 19477,
+                "data1": 14276
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8518254325935352,
+              "average_precision": 0.33570044705032087,
+              "pr_auc_trapezoidal": 0.33509739544339834,
+              "log_loss": 0.16163350505909277,
+              "brier_score": 0.0431815170648107
+            }
+          },
+          {
+            "fold": 4,
+            "train": {
+              "observations": 135058,
+              "positives": 7504,
+              "positive_fraction": 0.055561314398258524,
+              "unique_site_coordinates": 92479,
+              "gene_groups": 2802,
+              "dataset_observations": {
+                "data0": 77731,
+                "data1": 57327
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1866,
+              "positive_fraction": 0.055298719772403984,
+              "unique_site_coordinates": 22659,
+              "gene_groups": 701,
+              "dataset_observations": {
+                "data0": 18731,
+                "data1": 15013
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.855314493822812,
+              "average_precision": 0.35590042099590496,
+              "pr_auc_trapezoidal": 0.3553786353893845,
+              "log_loss": 0.15938313999189782,
+              "brier_score": 0.04247465182653101
+            }
+          },
+          {
+            "fold": 5,
+            "train": {
+              "observations": 135033,
+              "positives": 7492,
+              "positive_fraction": 0.05548273385024401,
+              "unique_site_coordinates": 92142,
+              "gene_groups": 2797,
+              "dataset_observations": {
+                "data0": 77281,
+                "data1": 57752
+              }
+            },
+            "validation": {
+              "observations": 33769,
+              "positives": 1878,
+              "positive_fraction": 0.05561313630844858,
+              "unique_site_coordinates": 22996,
+              "gene_groups": 706,
+              "dataset_observations": {
+                "data0": 19181,
+                "data1": 14588
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8569436581588196,
+              "average_precision": 0.353740180520325,
+              "pr_auc_trapezoidal": 0.35329629728772344,
+              "log_loss": 0.15965080762345232,
+              "brier_score": 0.042630058431206604
+            }
+          }
+        ],
+        "summary": {
+          "roc_auc": {
+            "mean": 0.8567883401592644,
+            "std": 0.003950065048583193
+          },
+          "average_precision": {
+            "mean": 0.3588784485927928,
+            "std": 0.017994506717811467
+          },
+          "pr_auc_trapezoidal": {
+            "mean": 0.35835182688916895,
+            "std": 0.018019516525777712
+          },
+          "log_loss": {
+            "mean": 0.15925058787469698,
+            "std": 0.0016612363385357695
+          },
+          "brier_score": {
+            "mean": 0.042475155876134055,
+            "std": 0.00048109197001262725
+          }
+        }
+      },
+      {
+        "C": 0.1,
+        "folds": [
+          {
+            "fold": 1,
+            "train": {
+              "observations": 135058,
+              "positives": 7505,
+              "positive_fraction": 0.05556871862459092,
+              "unique_site_coordinates": 91681,
+              "gene_groups": 2806,
+              "dataset_observations": {
+                "data0": 77212,
+                "data1": 57846
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1865,
+              "positive_fraction": 0.055269084874348035,
+              "unique_site_coordinates": 23457,
+              "gene_groups": 697,
+              "dataset_observations": {
+                "data0": 19250,
+                "data1": 14494
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8620804689851465,
+              "average_precision": 0.3900463117091085,
+              "pr_auc_trapezoidal": 0.38954802347537215,
+              "log_loss": 0.1544635888725318,
+              "brier_score": 0.04081321440060361
+            }
+          },
+          {
+            "fold": 2,
+            "train": {
+              "observations": 135010,
+              "positives": 7479,
+              "positive_fraction": 0.055395896600251834,
+              "unique_site_coordinates": 91856,
+              "gene_groups": 2803,
+              "dataset_observations": {
+                "data0": 76639,
+                "data1": 58371
+              }
+            },
+            "validation": {
+              "observations": 33792,
+              "positives": 1891,
+              "positive_fraction": 0.05595999053030303,
+              "unique_site_coordinates": 23282,
+              "gene_groups": 700,
+              "dataset_observations": {
+                "data0": 19823,
+                "data1": 13969
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8669282915542965,
+              "average_precision": 0.40255591569873417,
+              "pr_auc_trapezoidal": 0.4020279659613319,
+              "log_loss": 0.15367230197739665,
+              "brier_score": 0.04083588765427318
+            }
+          },
+          {
+            "fold": 3,
+            "train": {
+              "observations": 135049,
+              "positives": 7500,
+              "positive_fraction": 0.05553539826285274,
+              "unique_site_coordinates": 92394,
+              "gene_groups": 2804,
+              "dataset_observations": {
+                "data0": 76985,
+                "data1": 58064
+              }
+            },
+            "validation": {
+              "observations": 33753,
+              "positives": 1870,
+              "positive_fraction": 0.05540248274227476,
+              "unique_site_coordinates": 22744,
+              "gene_groups": 699,
+              "dataset_observations": {
+                "data0": 19477,
+                "data1": 14276
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8549456309256388,
+              "average_precision": 0.35399757344539323,
+              "pr_auc_trapezoidal": 0.3533930607417906,
+              "log_loss": 0.15895184693952363,
+              "brier_score": 0.042269100677737016
+            }
+          },
+          {
+            "fold": 4,
+            "train": {
+              "observations": 135058,
+              "positives": 7504,
+              "positive_fraction": 0.055561314398258524,
+              "unique_site_coordinates": 92479,
+              "gene_groups": 2802,
+              "dataset_observations": {
+                "data0": 77731,
+                "data1": 57327
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1866,
+              "positive_fraction": 0.055298719772403984,
+              "unique_site_coordinates": 22659,
+              "gene_groups": 701,
+              "dataset_observations": {
+                "data0": 18731,
+                "data1": 15013
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8614181498635572,
+              "average_precision": 0.3859067635008123,
+              "pr_auc_trapezoidal": 0.3853456252346803,
+              "log_loss": 0.15501697219891689,
+              "brier_score": 0.0410823227829317
+            }
+          },
+          {
+            "fold": 5,
+            "train": {
+              "observations": 135033,
+              "positives": 7492,
+              "positive_fraction": 0.05548273385024401,
+              "unique_site_coordinates": 92142,
+              "gene_groups": 2797,
+              "dataset_observations": {
+                "data0": 77281,
+                "data1": 57752
+              }
+            },
+            "validation": {
+              "observations": 33769,
+              "positives": 1878,
+              "positive_fraction": 0.05561313630844858,
+              "unique_site_coordinates": 22996,
+              "gene_groups": 706,
+              "dataset_observations": {
+                "data0": 19181,
+                "data1": 14588
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8634206258144548,
+              "average_precision": 0.38060930152047734,
+              "pr_auc_trapezoidal": 0.38011168762405073,
+              "log_loss": 0.15510806178863837,
+              "brier_score": 0.041213276020777234
+            }
+          }
+        ],
+        "summary": {
+          "roc_auc": {
+            "mean": 0.8617586334286187,
+            "std": 0.004362456134911176
+          },
+          "average_precision": {
+            "mean": 0.3826231731749051,
+            "std": 0.01793515970490901
+          },
+          "pr_auc_trapezoidal": {
+            "mean": 0.3820852726074451,
+            "std": 0.017966438346317486
+          },
+          "log_loss": {
+            "mean": 0.15544255435540147,
+            "std": 0.0020433004422131984
+          },
+          "brier_score": {
+            "mean": 0.04124276030726455,
+            "std": 0.0005979212155682973
+          }
+        }
+      },
+      {
+        "C": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "train": {
+              "observations": 135058,
+              "positives": 7505,
+              "positive_fraction": 0.05556871862459092,
+              "unique_site_coordinates": 91681,
+              "gene_groups": 2806,
+              "dataset_observations": {
+                "data0": 77212,
+                "data1": 57846
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1865,
+              "positive_fraction": 0.055269084874348035,
+              "unique_site_coordinates": 23457,
+              "gene_groups": 697,
+              "dataset_observations": {
+                "data0": 19250,
+                "data1": 14494
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8620016858316555,
+              "average_precision": 0.392781850992246,
+              "pr_auc_trapezoidal": 0.39229415431272374,
+              "log_loss": 0.1542057271598877,
+              "brier_score": 0.040663924426754254
+            }
+          },
+          {
+            "fold": 2,
+            "train": {
+              "observations": 135010,
+              "positives": 7479,
+              "positive_fraction": 0.055395896600251834,
+              "unique_site_coordinates": 91856,
+              "gene_groups": 2803,
+              "dataset_observations": {
+                "data0": 76639,
+                "data1": 58371
+              }
+            },
+            "validation": {
+              "observations": 33792,
+              "positives": 1891,
+              "positive_fraction": 0.05595999053030303,
+              "unique_site_coordinates": 23282,
+              "gene_groups": 700,
+              "dataset_observations": {
+                "data0": 19823,
+                "data1": 13969
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8666058702134584,
+              "average_precision": 0.40292591539566286,
+              "pr_auc_trapezoidal": 0.4023417045381345,
+              "log_loss": 0.15364888473070815,
+              "brier_score": 0.040773020965735825
+            }
+          },
+          {
+            "fold": 3,
+            "train": {
+              "observations": 135049,
+              "positives": 7500,
+              "positive_fraction": 0.05553539826285274,
+              "unique_site_coordinates": 92394,
+              "gene_groups": 2804,
+              "dataset_observations": {
+                "data0": 76985,
+                "data1": 58064
+              }
+            },
+            "validation": {
+              "observations": 33753,
+              "positives": 1870,
+              "positive_fraction": 0.05540248274227476,
+              "unique_site_coordinates": 22744,
+              "gene_groups": 699,
+              "dataset_observations": {
+                "data0": 19477,
+                "data1": 14276
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8542757518674984,
+              "average_precision": 0.3554617046518875,
+              "pr_auc_trapezoidal": 0.35485630526855644,
+              "log_loss": 0.15906653066652748,
+              "brier_score": 0.04221783306230334
+            }
+          },
+          {
+            "fold": 4,
+            "train": {
+              "observations": 135058,
+              "positives": 7504,
+              "positive_fraction": 0.055561314398258524,
+              "unique_site_coordinates": 92479,
+              "gene_groups": 2802,
+              "dataset_observations": {
+                "data0": 77731,
+                "data1": 57327
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1866,
+              "positive_fraction": 0.055298719772403984,
+              "unique_site_coordinates": 22659,
+              "gene_groups": 701,
+              "dataset_observations": {
+                "data0": 18731,
+                "data1": 15013
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8618903413045731,
+              "average_precision": 0.3888278457978138,
+              "pr_auc_trapezoidal": 0.38825748992176623,
+              "log_loss": 0.15455266302579973,
+              "brier_score": 0.0408867894551517
+            }
+          },
+          {
+            "fold": 5,
+            "train": {
+              "observations": 135033,
+              "positives": 7492,
+              "positive_fraction": 0.05548273385024401,
+              "unique_site_coordinates": 92142,
+              "gene_groups": 2797,
+              "dataset_observations": {
+                "data0": 77281,
+                "data1": 57752
+              }
+            },
+            "validation": {
+              "observations": 33769,
+              "positives": 1878,
+              "positive_fraction": 0.05561313630844858,
+              "unique_site_coordinates": 22996,
+              "gene_groups": 706,
+              "dataset_observations": {
+                "data0": 19181,
+                "data1": 14588
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8639747964721018,
+              "average_precision": 0.3850236170628256,
+              "pr_auc_trapezoidal": 0.38451954158699225,
+              "log_loss": 0.15456827888717972,
+              "brier_score": 0.04100691694961999
+            }
+          }
+        ],
+        "summary": {
+          "roc_auc": {
+            "mean": 0.8617496891378575,
+            "std": 0.004595558208065752
+          },
+          "average_precision": {
+            "mean": 0.3850041867800872,
+            "std": 0.01781193008409089
+          },
+          "pr_auc_trapezoidal": {
+            "mean": 0.38445383912563463,
+            "std": 0.017832080345979266
+          },
+          "log_loss": {
+            "mean": 0.15520841689402054,
+            "std": 0.002188741588015684
+          },
+          "brier_score": {
+            "mean": 0.04110969697191302,
+            "std": 0.0006325110639327873
+          }
+        }
+      },
+      {
+        "C": 10.0,
+        "folds": [
+          {
+            "fold": 1,
+            "train": {
+              "observations": 135058,
+              "positives": 7505,
+              "positive_fraction": 0.05556871862459092,
+              "unique_site_coordinates": 91681,
+              "gene_groups": 2806,
+              "dataset_observations": {
+                "data0": 77212,
+                "data1": 57846
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1865,
+              "positive_fraction": 0.055269084874348035,
+              "unique_site_coordinates": 23457,
+              "gene_groups": 697,
+              "dataset_observations": {
+                "data0": 19250,
+                "data1": 14494
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8619395877525162,
+              "average_precision": 0.3929721565445583,
+              "pr_auc_trapezoidal": 0.39248417465981256,
+              "log_loss": 0.15420019641966487,
+              "brier_score": 0.04065082893246369
+            }
+          },
+          {
+            "fold": 2,
+            "train": {
+              "observations": 135010,
+              "positives": 7479,
+              "positive_fraction": 0.055395896600251834,
+              "unique_site_coordinates": 91856,
+              "gene_groups": 2803,
+              "dataset_observations": {
+                "data0": 76639,
+                "data1": 58371
+              }
+            },
+            "validation": {
+              "observations": 33792,
+              "positives": 1891,
+              "positive_fraction": 0.05595999053030303,
+              "unique_site_coordinates": 23282,
+              "gene_groups": 700,
+              "dataset_observations": {
+                "data0": 19823,
+                "data1": 13969
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8665042204621977,
+              "average_precision": 0.40279893310788445,
+              "pr_auc_trapezoidal": 0.40221412533504863,
+              "log_loss": 0.15368287043814396,
+              "brier_score": 0.04077263631650727
+            }
+          },
+          {
+            "fold": 3,
+            "train": {
+              "observations": 135049,
+              "positives": 7500,
+              "positive_fraction": 0.05553539826285274,
+              "unique_site_coordinates": 92394,
+              "gene_groups": 2804,
+              "dataset_observations": {
+                "data0": 76985,
+                "data1": 58064
+              }
+            },
+            "validation": {
+              "observations": 33753,
+              "positives": 1870,
+              "positive_fraction": 0.05540248274227476,
+              "unique_site_coordinates": 22744,
+              "gene_groups": 699,
+              "dataset_observations": {
+                "data0": 19477,
+                "data1": 14276
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.8541273986220674,
+              "average_precision": 0.3555147853779,
+              "pr_auc_trapezoidal": 0.3549092668950099,
+              "log_loss": 0.15912004850369668,
+              "brier_score": 0.04221906478951307
+            }
+          },
+          {
+            "fold": 4,
+            "train": {
+              "observations": 135058,
+              "positives": 7504,
+              "positive_fraction": 0.055561314398258524,
+              "unique_site_coordinates": 92479,
+              "gene_groups": 2802,
+              "dataset_observations": {
+                "data0": 77731,
+                "data1": 57327
+              }
+            },
+            "validation": {
+              "observations": 33744,
+              "positives": 1866,
+              "positive_fraction": 0.055298719772403984,
+              "unique_site_coordinates": 22659,
+              "gene_groups": 701,
+              "dataset_observations": {
+                "data0": 18731,
+                "data1": 15013
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.861928838826644,
+              "average_precision": 0.38906825073538115,
+              "pr_auc_trapezoidal": 0.3884951838558067,
+              "log_loss": 0.15451093198225374,
+              "brier_score": 0.04086664213716266
+            }
+          },
+          {
+            "fold": 5,
+            "train": {
+              "observations": 135033,
+              "positives": 7492,
+              "positive_fraction": 0.05548273385024401,
+              "unique_site_coordinates": 92142,
+              "gene_groups": 2797,
+              "dataset_observations": {
+                "data0": 77281,
+                "data1": 57752
+              }
+            },
+            "validation": {
+              "observations": 33769,
+              "positives": 1878,
+              "positive_fraction": 0.05561313630844858,
+              "unique_site_coordinates": 22996,
+              "gene_groups": 706,
+              "dataset_observations": {
+                "data0": 19181,
+                "data1": 14588
+              }
+            },
+            "metrics": {
+              "roc_auc": 0.863991025874911,
+              "average_precision": 0.385363126477862,
+              "pr_auc_trapezoidal": 0.38485921110937077,
+              "log_loss": 0.15452824561278442,
+              "brier_score": 0.040987739313283804
+            }
+          }
+        ],
+        "summary": {
+          "roc_auc": {
+            "mean": 0.8616982143076672,
+            "std": 0.004630965854825167
+          },
+          "average_precision": {
+            "mean": 0.3851434504487171,
+            "std": 0.01779265870935157
+          },
+          "pr_auc_trapezoidal": {
+            "mean": 0.38459239237100973,
+            "std": 0.017812892886801487
+          },
+          "log_loss": {
+            "mean": 0.15520845859130875,
+            "std": 0.0022132431254288654
+          },
+          "brier_score": {
+            "mean": 0.0410993822977861,
+            "std": 0.0006380211748953631
+          }
+        }
+      }
+    ],
+    "selected_C": 10.0,
+    "selected_summary": {
+      "roc_auc": {
+        "mean": 0.8616982143076672,
+        "std": 0.004630965854825167
+      },
+      "average_precision": {
+        "mean": 0.3851434504487171,
+        "std": 0.01779265870935157
+      },
+      "pr_auc_trapezoidal": {
+        "mean": 0.38459239237100973,
+        "std": 0.017812892886801487
+      },
+      "log_loss": {
+        "mean": 0.15520845859130875,
+        "std": 0.0022132431254288654
+      },
+      "brier_score": {
+        "mean": 0.0410993822977861,
+        "std": 0.0006380211748953631
+      }
+    },
+    "selected_oof_metrics": {
+      "roc_auc": 0.8616793666341553,
+      "average_precision": 0.38423612939480517,
+      "pr_auc_trapezoidal": 0.38412156796736274,
+      "log_loss": 0.15520813259252553,
+      "brier_score": 0.04109933254873521
+    }
+  },
+  "test_metrics": {
+    "roc_auc": 0.8481272162761221,
+    "average_precision": 0.39350276640835147,
+    "pr_auc_trapezoidal": 0.3931393005010545,
+    "log_loss": 0.17142218588662314,
+    "brier_score": 0.04546943193574086
+  },
+  "test_metrics_by_dataset": {
+    "data0": {
+      "roc_auc": 0.8900801276161032,
+      "average_precision": 0.4440158040524023,
+      "pr_auc_trapezoidal": 0.44324112339307065,
+      "log_loss": 0.1274634825006682,
+      "brier_score": 0.033303364741603926
+    },
+    "data1": {
+      "roc_auc": 0.8060473032363433,
+      "average_precision": 0.36074471302881933,
+      "pr_auc_trapezoidal": 0.36010225210827596,
+      "log_loss": 0.23181720792896165,
+      "brier_score": 0.06218443578622374
+    }
+  },
+  "constant_test_metrics": {
+    "roc_auc": 0.5,
+    "average_precision": 0.06153354924052365,
+    "pr_auc_trapezoidal": 0.5307667746202618,
+    "log_loss": 0.23150143422314037,
+    "brier_score": 0.05778346890893418
+  },
+  "overlapping_coordinates": 67320,
+  "overlap_label_disagreements": 3872,
+  "overlap_rule": "retain each dataset observation and its supplied label; same gene group/split/fold",
+  "gene_mapping": {
+    "transcripts": 6352,
+    "unmapped_transcripts": 0,
+    "preferred_gene_source_counts": {
+      "data0_labels": 5333,
+      "SGNEx_Ensembl91": 964,
+      "Ensembl_REST_snapshot": 54,
+      "Ensembl96_patch_GTF": 1
+    },
+    "SGNEx_vs_supplied_transcripts_compared": 5185,
+    "SGNEx_vs_supplied_gene_conflicts": 0,
+    "group_rule": "union gene IDs sharing transcript mappings or Ensembl96 gene names",
+    "preferred_gene_ids": 4486,
+    "conservative_gene_groups": 4379
+  },
+  "source": {
+    "data0": {
+      "path": "data/data0/dataset0.json.gz",
+      "sha256": "622410b2918692b75a880b753f1a621e8d892d6dbc13c1f430babc5543a0584e"
+    },
+    "labels0": {
+      "path": "data/data0/data.info.labelled",
+      "sha256": "6758f002db36835c188c9d6fb039b4599494ca9dcc816c26cc22a2c04ee42978"
+    },
+    "data1": {
+      "path": "data/data1/dataset1.json.gz",
+      "sha256": "5e88520aa2ea8b83dee626d290934dd81672a92e5b04ecb7dbd828b65659a6ef"
+    },
+    "labels1": {
+      "path": "data/data1/data.info",
+      "sha256": "05c8441c4d60a6228f79d219bb7240921699495f23052b378cdda432417acaf3"
+    },
+    "annotation": {
+      "path": "reference/raw/Homo_sapiens.GRCh38.91.annotations-transcripts.txt",
+      "sha256": "292ca2ab9f5b12a6b923d9e752954f98a74756e518be4f58506fc7960a1e6a8f"
+    },
+    "lookup": {
+      "path": "reference/raw/ensembl_lookup.json",
+      "sha256": "4955f09d06d31210f6967f5131a803b3c0f6c263aa151331c016ba64796e1405"
+    },
+    "patch_gtf": {
+      "path": "reference/raw/Homo_sapiens.GRCh38.96.chr_patch_hapl_scaff.gtf.gz",
+      "sha256": "dd4a6cd7fc747f459bc1a475894895ce09e749879be31eece12307bcd7e0e8c4"
+    },
+    "feature_version": 1,
+    "feature_names": [
+      "mean_minus1_dwell",
+      "mean_minus1_current_sd",
+      "mean_minus1_current_mean",
+      "mean_central_dwell",
+      "mean_central_current_sd",
+      "mean_central_current_mean",
+      "mean_plus1_dwell",
+      "mean_plus1_current_sd",
+      "mean_plus1_current_mean",
+      "sd_minus1_dwell",
+      "sd_minus1_current_sd",
+      "sd_minus1_current_mean",
+      "sd_central_dwell",
+      "sd_central_current_sd",
+      "sd_central_current_mean",
+      "sd_plus1_dwell",
+      "sd_plus1_current_sd",
+      "sd_plus1_current_mean",
+      "log1p_read_count",
+      "motif_AAACA",
+      "motif_AAACC",
+      "motif_AAACT",
+      "motif_AGACA",
+      "motif_AGACC",
+      "motif_AGACT",
+      "motif_GAACA",
+      "motif_GAACC",
+      "motif_GAACT",
+      "motif_GGACA",
+      "motif_GGACC",
+      "motif_GGACT",
+      "motif_TAACA",
+      "motif_TAACC",
+      "motif_TAACT",
+      "motif_TGACA",
+      "motif_TGACC",
+      "motif_TGACT",
+      "left_base_A",
+      "left_base_C",
+      "left_base_G",
+      "left_base_T",
+      "right_base_A",
+      "right_base_C",
+      "right_base_G",
+      "right_base_T"
+    ]
+  },
+  "versions": {
+    "python": "3.12.14",
+    "numpy": "2.5.3",
+    "scikit_learn": "1.9.1",
+    "joblib": "1.6.0"
+  },
+  "verification": {
+    "outer_gene_group_overlap": 0,
+    "outer_transcript_overlap": 0,
+    "outer_coordinate_overlap": 0,
+    "all_folds_group_separated": true,
+    "scaler_training_rows": 168802,
+    "test_used_for_parameter_selection": false,
+    "test_included_in_saved_model_fit": false
+  },
+  "elapsed_seconds": 36.66
+}

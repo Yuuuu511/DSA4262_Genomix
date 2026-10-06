@@ -1,0 +1,8 @@
+# Exact runtime used to train the published models (Python 3.12).
+cloudpickle==3.1.2
+joblib==1.6.0
+narwhals==2.27.0
+numpy==2.5.3
+scikit-learn==1.9.1
+scipy==1.18.1
+threadpoolctl==3.7.0

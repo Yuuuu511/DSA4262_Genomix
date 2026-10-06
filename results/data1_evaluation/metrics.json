@@ -1,0 +1,178 @@
+{
+  "evaluated_at_singapore": "2026-10-05T20:30:55+08:00",
+  "data0_positive_fraction": 0.044936719250151844,
+  "submission_model": {
+    "all_data1": {
+      "sites": 90810,
+      "positives": 6593,
+      "positive_fraction": 0.07260213632859817,
+      "metrics": {
+        "roc_auc": 0.8093374795875968,
+        "average_precision": 0.33475883269215706,
+        "pr_auc_trapezoidal": 0.33459959815764306,
+        "log_loss": 0.22267389387955955,
+        "brier_score": 0.05736907272332929
+      },
+      "threshold_0_5": {
+        "tn": 83305,
+        "fp": 912,
+        "fn": 5493,
+        "tp": 1100,
+        "precision": 0.5467196819085487,
+        "recall": 0.16684362202335812,
+        "f1": 0.2556653108657757
+      }
+    },
+    "overlapping_sites": {
+      "sites": 67320,
+      "positives": 4853,
+      "positive_fraction": 0.07208853238265003,
+      "metrics": {
+        "roc_auc": 0.805525578787281,
+        "average_precision": 0.34082080847627955,
+        "pr_auc_trapezoidal": 0.34059199590349676,
+        "log_loss": 0.2218870011480352,
+        "brier_score": 0.05670915269897993
+      },
+      "threshold_0_5": {
+        "tn": 61941,
+        "fp": 526,
+        "fn": 4106,
+        "tp": 747,
+        "precision": 0.5868028279654359,
+        "recall": 0.15392540696476406,
+        "f1": 0.24387855044074436
+      }
+    },
+    "new_sites": {
+      "sites": 23490,
+      "positives": 1740,
+      "positive_fraction": 0.07407407407407407,
+      "metrics": {
+        "roc_auc": 0.8198193156295415,
+        "average_precision": 0.3261059834277003,
+        "pr_auc_trapezoidal": 0.3255886161732462,
+        "log_loss": 0.2249290500603268,
+        "brier_score": 0.05926033777395503
+      },
+      "threshold_0_5": {
+        "tn": 21364,
+        "fp": 386,
+        "fn": 1387,
+        "tp": 353,
+        "precision": 0.4776725304465494,
+        "recall": 0.2028735632183908,
+        "f1": 0.28479225494150867
+      }
+    },
+    "new_transcripts": {
+      "sites": 15137,
+      "positives": 1222,
+      "positive_fraction": 0.0807293387064808,
+      "metrics": {
+        "roc_auc": 0.8200024347026281,
+        "average_precision": 0.33111198513018225,
+        "pr_auc_trapezoidal": 0.33040410515863455,
+        "log_loss": 0.24102341638599317,
+        "brier_score": 0.06434994132548953
+      },
+      "threshold_0_5": {
+        "tn": 13652,
+        "fp": 263,
+        "fn": 980,
+        "tp": 242,
+        "precision": 0.4792079207920792,
+        "recall": 0.19803600654664485,
+        "f1": 0.2802547770700637
+      }
+    }
+  },
+  "evaluation_model": {
+    "original_heldout_genes_in_data1": {
+      "sites": 15187,
+      "positives": 1165,
+      "positive_fraction": 0.07671034437347732,
+      "metrics": {
+        "roc_auc": 0.8017595893148902,
+        "average_precision": 0.36023392649132197,
+        "pr_auc_trapezoidal": 0.35962046697312433,
+        "log_loss": 0.23504024579739233,
+        "brier_score": 0.05989414569593959
+      },
+      "threshold_0_5": {
+        "tn": 13906,
+        "fp": 116,
+        "fn": 992,
+        "tp": 173,
+        "precision": 0.5986159169550173,
+        "recall": 0.14849785407725322,
+        "f1": 0.23796423658872076
+      }
+    }
+  },
+  "constant_predictor": {
+    "roc_auc": 0.5,
+    "average_precision": 0.07260213632859817,
+    "pr_auc_trapezoidal": 0.5363010681642991,
+    "log_loss": 0.26788772972590114,
+    "brier_score": 0.06809644143124621
+  },
+  "previous_data0_heldout_metrics": {
+    "roc_auc": 0.9028781850554193,
+    "average_precision": 0.49907486299387754,
+    "pr_auc_trapezoidal": 0.4983875113000847,
+    "log_loss": 0.12434225849663234,
+    "brier_score": 0.03279070464252479
+  },
+  "overlap": {
+    "sites": 67320,
+    "fraction_of_data1": 0.7413280475718533,
+    "new_sites": 23490,
+    "transcripts": 3432,
+    "new_transcripts": 1019,
+    "label_disagreements": 3872,
+    "label_disagreement_fraction": 0.05751633986928104,
+    "data0_0_data1_1": 2717,
+    "data0_1_data1_0": 1155
+  },
+  "source": {
+    "data": {
+      "path": "data/data1/dataset1.json.gz",
+      "sha256": "5e88520aa2ea8b83dee626d290934dd81672a92e5b04ecb7dbd828b65659a6ef"
+    },
+    "labels": {
+      "path": "data/data1/data.info",
+      "sha256": "05c8441c4d60a6228f79d219bb7240921699495f23052b378cdda432417acaf3"
+    },
+    "reference_labels": {
+      "path": "data/data0/data.info.labelled",
+      "sha256": "6758f002db36835c188c9d6fb039b4599494ca9dcc816c26cc22a2c04ee42978"
+    },
+    "model": {
+      "path": "models/data0_model.joblib",
+      "sha256": "c50628766b90400f1aa957640aa020419b5da7cacf378b34afa92b155e0daf25"
+    },
+    "evaluation_model": {
+      "path": "models/data0_evaluation_model.joblib",
+      "sha256": "df39ff75a88d1bb176166a3be2406861509311a0ae982ec6be0b6a3e12799671"
+    },
+    "split": {
+      "path": "artifacts/split.csv",
+      "sha256": "7b041794fd8953808a316b36ebc3323c6d799625b230f4cb87044ade717f3c50"
+    }
+  },
+  "versions": {
+    "python": "3.12.14",
+    "numpy": "2.5.3",
+    "scikit_learn": "1.9.1",
+    "joblib": "1.6.0"
+  },
+  "verification": {
+    "metadata_sites": 90810,
+    "signal_sites": 90810,
+    "all_sites_matched": true,
+    "probabilities_valid": true,
+    "both_model_files_unchanged": true,
+    "data1_used_for_fitting": false
+  }
+}

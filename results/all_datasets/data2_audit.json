@@ -1,0 +1,28 @@
+{
+  "data2_observations": 1323,
+  "raw_label_counts": {
+    "1.0": 189,
+    "0.95": 189,
+    "0.75": 189,
+    "0.7": 189,
+    "0.5": 189,
+    "0.25": 189,
+    "0.0": 189
+  },
+  "repeated_position_groups": 189,
+  "conditions_per_position": 7,
+  "sequence_context_agrees_across_conditions": true,
+  "shared_unique_read_vectors_between_1_and_0_95": 110428,
+  "unique_read_vectors_in_0_95": 116180,
+  "shared_read_fraction": 0.9504906180065416,
+  "all_coordinates_and_read_counts_verified": true,
+  "cross_dataset_anchor_rule": "30 sorted unique vectors per condition and position; matches require at least 3 exact vectors with identical 7-mer",
+  "cross_dataset_anchor_matching_sites": 0,
+  "cross_dataset_anchor_matched_data2_positions": 0,
+  "sha256": {
+    "data2": "8bb7b21a2936efc6b26b1f18513748f0dcd47dfd932d03c4ac8c084ab9f8a288",
+    "labels2": "e33fc70755a5045ddc2c143b69760849261ee616888d2e2369e2a94b89bebd71"
+  },
+  "target_interpretation": "user selected option 3: raw label >= 0.5 is positive",
+  "data2_threshold": 0.5
+}

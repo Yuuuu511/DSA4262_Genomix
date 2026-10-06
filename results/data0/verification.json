@@ -1,0 +1,8 @@
+{
+  "automated_tests_passed": 4,
+  "real_data_prediction_rows": 20,
+  "heldout_inference_max_absolute_error": 4.440892098500626e-16,
+  "gene_overlap": 0,
+  "evaluation_scaler_training_sites": 98006,
+  "submission_scaler_training_sites": 121838
+}

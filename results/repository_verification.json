@@ -1,0 +1,54 @@
+{
+  "verified_at_singapore": "2026-10-06T11:16:42+08:00",
+  "python": "3.12.14",
+  "platform": "macOS",
+  "automated_tests_passed": 12,
+  "clean_copy_and_git_tree_export_tests_passed": true,
+  "dependency_check": "No broken requirements found",
+  "clean_test_environment": "Existing pinned virtual environment; exported copy contains no local training artifacts or datasets.",
+  "published_models": 4,
+  "model_fitted_parameters_match_originals_exactly": true,
+  "prediction_default": "models/baseline_model.joblib (data0 + data1 + data2, training portion only)",
+  "example_predictions_match_current_model": true,
+  "prediction_works_from_other_working_directories": true,
+  "gene_mapping_transcripts": 6352,
+  "full_training_reproduction": {
+    "cache_used": false,
+    "raw_annotation_files_required": false,
+    "training_observations": 169525,
+    "test_observations": 44446,
+    "selected_C": 10,
+    "split_file_matches_original_sha256": true,
+    "gene_map_matches_original_sha256": true,
+    "all_fold_and_test_metrics_match_originals_exactly": true,
+    "fitted_parameters_match_originals_exactly": true,
+    "test_roc_auc": 0.8581371263696411,
+    "test_average_precision": 0.414077458501111
+  },
+  "frozen_data1_evaluation_reproduction": {
+    "sites": 90810,
+    "all_subset_metrics_match_originals_exactly": true,
+    "models_unchanged": true
+  },
+  "git_byte_preservation_checked_with_autocrlf_true": true,
+  "ignored_categories": [
+    "full datasets",
+    "local artifacts and caches",
+    "virtual environment",
+    "outputs",
+    "system files",
+    "environment-secret files"
+  ],
+  "no_private_absolute_paths_in_published_files": true,
+  "github_actions": "Configured for Ubuntu, Python 3.12; not executed on GitHub yet.",
+  "git_status": "Files prepared locally; no commit, remote configuration or push performed in the source repository.",
+  "git_integration": {
+    "repository": "https://github.com/Yuuuu511/DSA4262_Genomix.git",
+    "branch": "task1_ben",
+    "base_commit": "56d6925a972490c46f4032f6bd2055d3728a6736",
+    "checkout": "outputs/github-checkout",
+    "existing_python_ignore_rules_retained": true,
+    "note": "Pre-commit preparation record; later push status is reported separately.",
+    "checkout_tests_passed": 12
+  }
+}

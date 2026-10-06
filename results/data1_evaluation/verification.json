@@ -1,0 +1,9 @@
+{
+  "automated_tests_passed": 4,
+  "csv_sites_checked": 90810,
+  "all_coordinates_match_metadata": true,
+  "metrics_recomputed_from_exported_csv": true,
+  "prediction_cli_sample_sites": 20,
+  "max_probability_error_vs_prediction_script": 2.220446049250313e-16,
+  "both_model_files_unchanged": true
+}

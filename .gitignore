@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# DSA4262 baseline: large inputs and local generated files
+.venv/
+artifacts/
+*.pyc
+.DS_Store
+.Rhistory
+data/
+outputs/
+.env.*

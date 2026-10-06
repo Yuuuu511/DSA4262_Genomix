@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.joblib binary
+*.gz binary
+# These snapshots are checksum-bound; preserve their original bytes.
+reference/transcript_gene_map.csv -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+reference/ensembl_lookup.json -text
