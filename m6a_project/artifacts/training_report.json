@@ -1,0 +1,88 @@
+{
+  "selected": {
+    "max_depth": 5,
+    "positive_weight": 1,
+    "boosting_rounds": 408,
+    "selection_score": 0.7165231551468827,
+    "n_sites": 24773,
+    "positive_rate": 0.04412061518588786,
+    "roc_auc": 0.9303112674946218,
+    "pr_auc": 0.5027350427991435,
+    "average_precision": 0.5031165476239903
+  },
+  "candidates": [
+    {
+      "max_depth": 3,
+      "positive_weight": 1,
+      "boosting_rounds": 723,
+      "selection_score": 0.7139924040517194,
+      "n_sites": 24773,
+      "positive_rate": 0.04412061518588786,
+      "roc_auc": 0.9301940828923616,
+      "pr_auc": 0.4977907252110772,
+      "average_precision": 0.4981014493106693
+    },
+    {
+      "max_depth": 5,
+      "positive_weight": 1,
+      "boosting_rounds": 408,
+      "selection_score": 0.7165231551468827,
+      "n_sites": 24773,
+      "positive_rate": 0.04412061518588786,
+      "roc_auc": 0.9303112674946218,
+      "pr_auc": 0.5027350427991435,
+      "average_precision": 0.5031165476239903
+    },
+    {
+      "max_depth": 3,
+      "positive_weight": 4,
+      "boosting_rounds": 972,
+      "selection_score": 0.713896231551279,
+      "n_sites": 24773,
+      "positive_rate": 0.04412061518588786,
+      "roc_auc": 0.9316603199723054,
+      "pr_auc": 0.49613214313025267,
+      "average_precision": 0.4966562929247038
+    },
+    {
+      "max_depth": 5,
+      "positive_weight": 4,
+      "boosting_rounds": 397,
+      "selection_score": 0.7148535196047173,
+      "n_sites": 24773,
+      "positive_rate": 0.04412061518588786,
+      "roc_auc": 0.9309138235330481,
+      "pr_auc": 0.49879321567638657,
+      "average_precision": 0.49926285867463804
+    }
+  ],
+  "parameters": {
+    "max_depth": 5,
+    "scale_pos_weight": 1,
+    "learning_rate": 0.05,
+    "n_estimators": 408,
+    "min_child_weight": 15,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85,
+    "reg_lambda": 10,
+    "reg_alpha": 0.1,
+    "tree_method": "hist",
+    "n_jobs": 4,
+    "random_state": 4262,
+    "eval_metric": "aucpr"
+  },
+  "training_scope": "data0 train+validation only",
+  "selection_rule": "(validation ROC-AUC + validation trapezoidal PR-AUC)/2",
+  "manifest": "splits/split_manifest.csv",
+  "versions": {
+    "xgboost": "2.1.4",
+    "sklearn": "1.6.1",
+    "numpy": "2.2.3"
+  },
+  "notes": [
+    "Test excluded from all feature extraction, fitting and selection.",
+    "Input label file checked against the manifest for identity only.",
+    "Model is NOT refitted on all data0."
+  ],
+  "packaging_note": "Measured local retraining report; only the machine-specific manifest path was normalized."
+}
