@@ -6,7 +6,7 @@ This repository contains our DSA4262 genomics project work.
 
 Our method uses an XGBoost classifier to predict m6A modification probabilities from m6Anet-processed direct RNA-sequencing data.
 
-The implementation is in [`m6a_project/`](m6a_project/). It includes:
+The implementation is in [`Task1/`](Task1/). It includes:
 
 - Model training and prediction scripts.
 - A pretrained data0-only XGBoost model.
@@ -14,14 +14,14 @@ The implementation is in [`m6a_project/`](m6a_project/). It includes:
 - A small example dataset for testing prediction.
 - Evaluation results and comparisons against official m6Anet.
 
-**For installation and commands, see [`m6a_project/README.md`](m6a_project/README.md).**
+**For installation and commands, see [`Task1/README.md`](Task1/README.md).**
 
 ## Repository structure
 
 ```text
 .
 ├── README.md
-└── m6a_project/
+└── Task1/
     ├── README.md
     ├── requirements.txt
     ├── train.py
@@ -33,7 +33,7 @@ The implementation is in [`m6a_project/`](m6a_project/). It includes:
     └── evaluation/
 ```
 
-Full course datasets are not included in the repository. For training and full-dataset evaluation, place the downloaded `data0/`, `data1/` and `data2/` folders beside `m6a_project/`.
+Full course datasets are not included in the repository. For training and full-dataset evaluation, place the downloaded `data0/`, `data1/` and `data2/` folders beside `Task1/`.
 
 ## Verified environment
 
@@ -53,7 +53,7 @@ On the same 39,019 held-out data0/data1 sites:
 | XGBoost | 0.876746 | 0.462438 | 0.462871 |
 | Pretrained m6Anet | 0.878555 | 0.446030 | 0.446313 |
 
-Data2 is evaluated separately using the label convention `label >= 0.5 → 1`, otherwise `0`. Detailed results and limitations are documented in [`m6a_project/RESULTS.md`](m6a_project/RESULTS.md).
+Data2 is evaluated separately using the label convention `label >= 0.5 → 1`, otherwise `0`. Detailed results and limitations are documented in [`Task1/RESULTS.md`](Task1/RESULTS.md).
 
 These comparisons informed method selection and are exploratory. Pretrained m6Anet training-data overlap is unknown. A suitable simple-baseline comparison still needs to be included in the final report.
 
