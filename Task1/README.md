@@ -13,7 +13,7 @@ Prediction requires no labels or gene mappings. You can use the supplied model w
 
 ## 1. AWS Ubuntu setup
 
-The verified deployment environment is **Ubuntu 24.04, x86_64**, with 2 vCPUs and 8 GiB RAM. Saved-model tests and official m6Anet benchmarking passed there. Full XGBoost training was reproduced on macOS; full retraining on AWS has not yet been verified.
+The verified deployment environment is **Ubuntu 24.04, x86_64**, with 2 vCPUs and 8 GiB RAM. Saved-model tests and official m6Anet benchmarking passed there.
 
 Use separate environments:
 
@@ -64,8 +64,6 @@ conda activate xgb
 
 All remaining commands assume the current directory is `Task1/`.
 
-Directory names are case-sensitive on Ubuntu. Use **`Task1`** consistently. Renaming the GitHub directory does not automatically rename an existing copy on AWS.
-
 ## 2. Test the supplied model
 
 ```bash
@@ -90,8 +88,6 @@ python validate_submission.py \
 The example contains 20 sites taken from data0. It is a small execution test, not an independent performance test set.
 
 Reference predictions are in `example/expected_predictions.csv`. The tests compare scores within an absolute tolerance of `1e-6`.
-
-Prediction refuses existing output files. For an intentional rerun, append `--overwrite`; keep the reference predictions unchanged.
 
 ## 3. Predict new data
 
@@ -355,8 +351,6 @@ PR-AUC uses trapezoidal integration; AP uses `average_precision_score`.
 XGBoost aggregates read signals into site features. m6Anet uses neural multiple-instance learning and sampling-based site pooling. Pretrained m6Anet training-data overlap is unknown.
 
 No significance testing was performed. Test comparisons informed method choice, so they should be described as exploratory rather than independent post-selection evaluation. See `RESULTS.md` for details.
-
-A suitable simple-baseline comparison still needs to be included in the final report.
 
 ## 11. Script reference
 
