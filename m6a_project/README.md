@@ -1,186 +1,391 @@
-# Genomix_haribo — Task 1 m6A prediction
+# Task 1 — m6A prediction with XGBoost
 
-This package uses the selected **data0-only XGBoost model** evaluated on the original RF gene split. It includes the trained model, a training script, a prediction script, a small prediction input, a fixed split manifest, and evaluation records. Prediction needs only a JSON file and the model; it needs no labels, gene mappings, raw training data or split file.
+This project predicts m6A modification probabilities from m6Anet-processed direct RNA-sequencing JSON files.
 
-## Install
+The two main scripts are:
 
-Use Python 3.11–3.13. The provided model and scripts were verified on Python 3.13/macOS, with the versions pinned in requirements.txt. The user also ran all four bundled pipeline tests successfully on an AWS Ubuntu 24.04 x86_64 instance with a Python 3.11 XGBoost environment. Official m6Anet inference and all three benchmark comparisons were run on that instance in a separate Python 3.8 environment. On an Ubuntu machine with Python and venv available, or on macOS:
+- **`train.py`**: train and save an XGBoost model.
+- **`predict.py`**: apply a saved model to new JSON data.
+
+The supplied model uses **data0 train and validation observations only**. Data1 and data2 are not used for fitting or hyperparameter tuning.
+
+Prediction requires no labels or gene mappings. You can use the supplied model without retraining.
+
+## 1. AWS Ubuntu setup
+
+The verified deployment environment is **Ubuntu 24.04, x86_64**, with 2 vCPUs and 8 GiB RAM. Saved-model tests and official m6Anet benchmarking passed there. Full XGBoost training was reproduced on macOS; full retraining on AWS has not yet been verified.
+
+Use separate environments:
+
+| Environment | Python | Purpose |
+|---|---|---|
+| `xgb` | 3.11 | Training, prediction and evaluation |
+| `m6anet38` | 3.8 | Official m6Anet inference |
+
+The commands below run in the **AWS Ubuntu terminal**.
+
+Install system dependencies:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+sudo apt-get update
+sudo apt-get install -y curl bzip2 libgomp1 git
+```
+
+If conda is not already installed:
+
+```bash
+curl -fL -o /tmp/Miniforge3.sh \
+  https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+
+bash /tmp/Miniforge3.sh -b -p "$HOME/miniforge3"
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+```
+
+Create the XGBoost environment:
+
+```bash
+conda create -n xgb -c conda-forge python=3.11 -y
+conda activate xgb
+```
+
+From the repository root, enter the project and install dependencies:
+
+```bash
+cd m6a_project
 python -m pip install -r requirements.txt
 ```
 
-XGBoost depends on an OpenMP runtime. If Ubuntu reports a missing `libgomp.so.1`, install the system package `libgomp1`. Load only the included trusted model or a model you trained yourself.
-
-## Predict immediately
-
-From this folder:
+After reconnecting through SSH, if conda is unavailable:
 
 ```bash
-python predict.py --data example/test.json.gz --output example/predictions.csv
-python validate_submission.py --data example/test.json.gz --predictions example/predictions.csv
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+conda activate xgb
+```
+
+All remaining commands assume the current directory is `m6a_project/`.
+
+## 2. Test the supplied model
+
+```bash
 python test_pipeline.py
 ```
 
-The first command defaults to `artifacts/selected_xgb.joblib`. The included input contains 20 sites; `example/expected_predictions.csv` was freshly generated with this chosen model. Tests run inference again and compare keys and scores, including different batch sizes. Probability tolerance is 1e-6 with the pinned versions.
+The four tests check saved-model predictions, feature/manifest compatibility, batch-size consistency, site coverage and invalid-input handling.
 
-For new data:
+Run the example prediction:
 
 ```bash
-python predict.py --data /path/to/new_data.json.gz --model artifacts/selected_xgb.joblib --output /path/to/predictions.csv
+python predict.py \
+  --data example/test.json.gz \
+  --model artifacts/selected_xgb.joblib \
+  --output /tmp/m6a_example_predictions.csv
+
+python validate_submission.py \
+  --data example/test.json.gz \
+  --predictions /tmp/m6a_example_predictions.csv
 ```
 
-Plain newline-delimited `.json` and `.json.gz` are supported. Output contains every input site, with exactly these columns:
+The example contains 20 sites taken from data0. It is a small execution test, not an independent performance test set.
+
+Reference predictions are in `example/expected_predictions.csv`. The tests compare scores within an absolute tolerance of `1e-6`.
+
+Prediction refuses existing output files. For an intentional rerun, append `--overwrite`; keep the reference predictions unchanged.
+
+## 3. Predict new data
+
+```bash
+python predict.py \
+  --data /path/to/new_data.json.gz \
+  --model artifacts/selected_xgb.joblib \
+  --output /path/to/predictions.csv
+```
+
+Both newline-delimited `.json` and compressed `.json.gz` are supported. Each site contains a seven-base sequence and a variable number of reads, with nine finite signal features per read.
+
+Output format:
 
 ```csv
 transcript_id,transcript_position,score
 ```
 
-Scores are finite probabilities in [0,1]. There is no label threshold and no CSV index. Transcript identifiers and integer positions are preserved, including position 0. Duplicate sites or malformed read arrays cause an error. Prediction processes feature batches; identifiers are retained to detect duplicates. Existing output is refused unless `--overwrite` is explicitly passed. Partial predictions are not left at the requested output path after an error.
+The output contains one probability in `[0,1]` per input site. Transcript IDs and integer positions, including position zero, are preserved. No probability threshold is applied.
 
-## Generate a gene split without any RF code
+The default model is `artifacts/selected_xgb.joblib`, so `--model` is optional.
 
-`prepare_split.py` reads label metadata directly. It uses GroupShuffleSplit with seed 42 for the 20% test genes and seed 43 for validation (25% of remaining genes). The fractions refer to genes, not exact site counts. The split is independent of which classifier will be trained. It does not import RF or train_model.py.
+## 4. Full dataset layout
 
-For a standalone data0-only XGBoost experiment:
+Download the course datasets and arrange them beside this directory:
 
-```bash
-python prepare_split.py --data0-labels ../data0/data.info.labelled --output splits/data0_only_manifest.csv --check-against splits/split_manifest.csv
-python train.py --data ../data0/dataset0.json.gz --labels ../data0/data.info.labelled --manifest splits/data0_only_manifest.csv --output-dir artifacts/data0_retrained
+```text
+repository/
+├── data0/
+│   ├── dataset0.json.gz
+│   └── data.info.labelled
+├── data1/
+│   ├── dataset1.json.gz
+│   └── data.info
+├── data2/
+│   ├── dataset2.json.gz
+│   └── data.info
+└── m6a_project/
 ```
 
-For the course data, the data0-only command was verified to reproduce the current data0 assignments exactly. It saves only data0 rows, so this new model's saved manifest will not contain data1 evaluation rows. The current evaluate_test.py requires the full data0+data1 manifest; use the full reproduction route below for that two-source evaluation. Prediction on new data works with either model and does not need any manifest.
+Full datasets are not included in GitHub. They are obtained through the course data distribution. The prediction example can run without them.
 
-To reproduce the **entire current manifest**, including data1 held-out evaluation rows:
+## 5. Reproduce the gene split
 
 ```bash
-python prepare_split.py --data0-labels ../data0/data.info.labelled --data1-labels ../data1/data.info --output splits/reproduced_manifest.csv --check-against splits/split_manifest.csv
+python prepare_split.py \
+  --data0-labels ../data0/data.info.labelled \
+  --data1-labels ../data1/data.info \
+  --output /tmp/m6a_reproduced_manifest.csv \
+  --check-against splits/split_manifest.csv
 ```
 
-This exact reproduction was tested on the real course label files, including row order and all split assignments. Data1 transcript-to-gene mappings are obtained from data0 labels when missing. The 15,137 data1 sites without a mapped gene are excluded, matching the original experiment. Data2 is not used in splitting. The script reads data1 labels for metadata integrity and class checks; no data1 observations enter XGBoost fitting, early stopping or configuration selection.
+The script uses `GroupShuffleSplit`:
 
-The original manifest was first generated in a shared experiment used to compare RF and XGBoost. This script independently implements that actual preparation logic without the RF model code. Preserve that provenance in the report.
+- Seed 42 reserves 20% of genes for test.
+- Seed 43 reserves 25% of the remaining genes for validation.
+- Genes and transcript-position sites cannot cross partitions.
 
-Optional `--data0-json` and `--data1-json` arguments verify exact raw JSON/label site coverage. No signal features are needed to assign genes to splits. Training separately checks raw feature coverage for the requested data0 training/validation sites. Existing manifest outputs are never overwritten.
+The proportions apply to genes rather than exact site counts. The supplied manifest was verified to be reproducible from the course labels.
 
-## Training from raw JSON and labels
+Data1 gene mappings are obtained from data0 where needed. The 15,137 data1 sites without gene mappings are excluded from this evaluation manifest. Data2 is not involved in splitting.
 
-Training uses `train.py` and the bundled original `splits/split_manifest.csv`. It accepts the course data0 JSON and binary label CSV. Labels must contain `gene_id,transcript_id,transcript_position,label`; the script verifies they match the manifest. It reads labels for identity checks but uses only data0 train/validation labels for fitting and selection.
+Although the manifest contains both data0 and data1, **training uses only its data0 train/validation rows**. The split originally supported a shared RF/XGBoost comparison; no RF code is needed to generate or use it.
 
-If this folder is inside your existing Group_Project, the data files remain in sibling data0/data1/data2 directories:
+## 6. Train XGBoost
+
+Training requires data0 JSON, binary labels containing `gene_id,transcript_id,transcript_position,label`, and a matching manifest.
 
 ```bash
-python train.py --data ../data0/dataset0.json.gz --labels ../data0/data.info.labelled --output-dir artifacts/retrained
+python train.py \
+  --data ../data0/dataset0.json.gz \
+  --labels ../data0/data.info.labelled \
+  --manifest splits/split_manifest.csv \
+  --output-dir artifacts/retrained
 ```
 
-On another machine, replace these paths with the downloaded course training files. Raw training datasets are not bundled. A separate training example is not required by Task 1.
+The output directory must be empty or absent. Outputs are:
 
-No training is needed to use the included model. Retraining defaults to a new `artifacts/retrained` folder and does not replace the included model. To predict with a retrained model, pass its path explicitly:
+- `selected_xgb.joblib`
+- `training_report.json`
+- `validation_metrics.csv`
 
-```bash
-python predict.py --data /path/to/new_data.json.gz --model artifacts/retrained/selected_xgb.joblib --output /path/to/new_predictions.csv
+Four candidates vary tree depth (`3` or `5`) and positive-class weight (`1` or `4`). Early stopping uses validation data. The average of validation ROC-AUC and trapezoidal PR-AUC selects the configuration.
+
+The selected configuration is refitted on data0 train+validation. Test observations are excluded from fitting and early stopping.
+
+| Partition | Sites |
+|---|---:|
+| data0 train | 73,233 |
+| data0 validation | 24,773 |
+| Final fitting: train + validation | 98,006 |
+| data0 test | 23,832 |
+| data1 test | 15,187 |
+
+The supplied model uses depth `5`, positive-class weight `1`, `408` boosting rounds and random seed `4262`. It is **not refitted on all data0**.
+
+Its 110 features summarize signal distributions, log dwell time, central/flanking contrasts, read count, sequence bases and motifs. Identifiers and labels are not input features. Feature extraction is shared through `xgb_features.py`.
+
+To use a newly trained model, pass:
+
+```text
+--model artifacts/retrained/selected_xgb.joblib
 ```
 
-The bundled manifest is specific to this experiment. Supplying unrelated data will fail coverage checks rather than silently selecting another split. To use a different dataset, prepare a new manifest with the same schema and globally disjoint genes/sites and pass `--manifest`; the source name of the training observations must be `data0`.
-
-## Fixed evaluation protocol
-
-- Candidate training: data0 train, 73,233 sites.
-- Validation: data0 validation, 24,773 sites.
-- Final model fit: these two partitions only, 98,006 sites.
-- Test: original data0+data1 test, 39,019 sites (23,832 data0; 15,187 data1).
-
-Genes and transcript-position sites cannot cross manifest splits. Training does not compute test features. Four candidates use depth 3/5 and positive-class weight 1/4, with validation early stopping. The mean of validation ROC-AUC and trapezoidal PR-AUC selects a configuration. The selected configuration is depth 5, weight 1, 408 boosting rounds. Seed 4262 and the original XGBoost settings are retained. The model is **not** refitted on all data0.
-
-Features are the unchanged original Group_Project 110 features: signal summaries (mean, standard deviation, quantiles), log dwell summaries, center/flank contrast summaries, read count, sequence one-hot features and motif indicators. Identifiers and labels are not model features. The analytic weight correction is retained; selected weight 1 means it is the identity. Probabilities are not empirically calibrated.
-
-To reproduce held-out evaluation without retraining:
+## 7. Held-out evaluation
 
 ```bash
-python evaluate_test.py --data0 ../data0/dataset0.json.gz --data1 ../data1/dataset1.json.gz --output-dir evaluation/recomputed
+python evaluate_test.py \
+  --data0 ../data0/dataset0.json.gz \
+  --data1 ../data1/dataset1.json.gz \
+  --model artifacts/selected_xgb.joblib \
+  --output-dir evaluation/recomputed
 ```
 
-This command verifies the model's saved manifest matches the evaluation manifest and never calls fit. Existing evaluation output is refused. The measured held-out results are in `evaluation/test_metrics.csv`; the final m6Anet comparison is in `evaluation/m6anet_comparison/comparison_metrics.csv`. See RESULTS.md for interpretation. These test results have already been viewed during method comparison; model choice using them is exploratory, not a new independent evaluation.
+This loads the frozen model, verifies its saved manifest and evaluates all 39,019 test observations. It never fits a model.
 
-## Generate three course prediction files
+Recorded results are in:
 
-```bash
-python run_pipeline.py --data-root .. --output-dir submissions --team-name Genomix_haribo
+```text
+evaluation/test_metrics.csv
+evaluation/heldout_test_predictions.csv
 ```
 
-This wrapper predicts and checks exact coverage using the included frozen model. It **does not retrain**. It expects data0/dataset0.json.gz, data1/dataset1.json.gz and data2/dataset2.json.gz under the data root. Check registered team spelling before submission. Existing prediction files are refused; select a new output directory to run again. No files are uploaded automatically.
+Evaluation output directories must be empty or absent. If using newly generated predictions for benchmarking, supply their path with `benchmark_m6anet.py --xgb-predictions`.
 
-## Benchmark against official m6Anet on Ubuntu x86_64
-
-This complete workflow uses the sibling course data folders only. No other project directory or earlier prediction files are required. Official m6Anet 2.0.2 was run on AWS Ubuntu 24.04 x86_64 in its own Python 3.8 environment. XGBoost prediction and metric scoring use the main environment. The full course datasets are available through the course data distribution (Canvas); they are not included in this public repository.
-
-Install a separate m6Anet environment using conda, as requested by the course:
+## 8. Generate intermediate-submission predictions
 
 ```bash
-conda create -n m6anet38 --override-channels -c pytorch -c conda-forge -c bioconda -c defaults python=3.8 m6anet=2.0.2 cpuonly "numpy<1.24"
+python run_pipeline.py \
+  --data-root .. \
+  --model artifacts/selected_xgb.joblib \
+  --output-dir submissions \
+  --team-name Genomix_haribo
 ```
 
-Prepare inputs in the main environment:
+The script predicts all sites and validates the three CSVs:
+
+| File | Sites |
+|---|---:|
+| `Genomix_haribo_dataset0.csv` | 121,838 |
+| `Genomix_haribo_dataset1.csv` | 90,810 |
+| `Genomix_haribo_dataset2.csv` | 1,323 |
+
+Use the registered team name. The wrapper does not retrain or upload anything. Existing output files are refused.
+
+Full data0 predictions include training observations and must not be treated as independent test performance.
+
+## 9. Official m6Anet benchmark
+
+### Install the separate environment
 
 ```bash
-python prepare_m6anet.py --data0 ../data0/dataset0.json.gz --data1 ../data1/dataset1.json.gz --output-dir evaluation/m6anet_inputs
-python prepare_m6anet_data2.py
-```
+conda create -n m6anet38 \
+  --override-channels \
+  -c pytorch -c conda-forge -c bioconda -c defaults \
+  python=3.8 m6anet=2.0.2 cpuonly "numpy<1.24" -y
 
-Data0/data1 preparation selects original test sites; data2 preparation uses all raw data2 sites. Both append synthetic per-site read IDs to the course's nine-column signals, rebuild byte offsets and retain sites with at least 20 reads. All 39,019 data0/data1 test sites and all 1,323 data2 sites passed that coverage threshold in this run. Preparation needs an empty/absent destination; intermediate JSON files are intentionally excluded from Git.
-
-Run official inference separately for all three sources, using the package's default HCT116 model and normalization:
-
-```bash
 conda activate m6anet38
-m6anet inference --input_dir evaluation/m6anet_inputs/data0 --out_dir evaluation/m6anet_outputs/data0 --n_processes 1 --num_iterations 1000 --seed 42 --save_per_batch 100000
-m6anet inference --input_dir evaluation/m6anet_inputs/data1 --out_dir evaluation/m6anet_outputs/data1 --n_processes 1 --num_iterations 1000 --seed 42 --save_per_batch 100000
-m6anet inference --input_dir evaluation/m6anet_inputs/data2 --out_dir evaluation/m6anet_outputs/data2 --n_processes 1 --num_iterations 1000 --seed 42 --save_per_batch 100000
+python -c "import torch; print(torch.__version__)"
+m6anet inference --help
 ```
 
-**Version-specific saving workaround:** the installed 2.0.2 code uses `if (it + 1) % args.save_per_batch` and lacks a final flush. The default value 2 omitted the last 8 data0 sites and last 3 data1 sites. Setting 100000, greater than the number of batches in each prepared dataset, makes that condition true for every batch and restores complete coverage. Do not set it to 1; in this version that prevents saving. This is a workaround for 2.0.2, not a universally appropriate parameter for future versions. Model weights and feature normalization are not altered. Record the workaround with the benchmark.
+The tested environment uses PyTorch `1.6.0`. Do not install these legacy dependencies into `xgb`.
 
-Return to the main XGBoost environment and score:
+### Prepare inputs
 
 ```bash
 conda activate xgb
-python benchmark_m6anet.py --m6anet-data0 evaluation/m6anet_outputs/data0/data.site_proba.csv --m6anet-data1 evaluation/m6anet_outputs/data1/data.site_proba.csv --output-dir evaluation/m6anet_recomputed
+
+python prepare_m6anet.py \
+  --data0 ../data0/dataset0.json.gz \
+  --data1 ../data1/dataset1.json.gz \
+  --output-dir evaluation/m6anet_inputs
+
+python prepare_m6anet_data2.py
 ```
 
-The original results in evaluation/m6anet_comparison are retained for reporting; this reproduction command uses a separate output location so it cannot overwrite them. Both methods are evaluated on exactly the same test sites, and missing coverage is reported.
+Data0/data1 preparation selects held-out test sites. Data2 preparation selects all raw sites.
 
-### Data2 label convention and separate comparison
+These scripts append synthetic per-site read IDs, rebuild JSON byte offsets and retain sites with at least 20 reads. All final evaluation sites met that coverage threshold.
 
-The evaluation convention agreed for this project is `label >= 0.5 -> 1`, otherwise 0. Keep fractional labels for provenance. There are 189 values exactly 0.5; all are assigned to class 1. No data2 labels are used for fitting or tuning. Data2 has a positive rate of 71.43%, so its PR-AUC/AP should not be directly ranked against the much lower-prevalence data0/data1 results.
+### Run inference
 
 ```bash
-python evaluate_data2.py --m6anet-predictions evaluation/m6anet_outputs/data2/data.site_proba.csv --output-dir evaluation/data2_recomputed
+conda activate m6anet38
+
+m6anet inference \
+  --input_dir evaluation/m6anet_inputs/data0 \
+  --out_dir evaluation/m6anet_outputs/data0 \
+  --n_processes 1 --num_iterations 1000 --seed 42 \
+  --save_per_batch 100000
+
+m6anet inference \
+  --input_dir evaluation/m6anet_inputs/data1 \
+  --out_dir evaluation/m6anet_outputs/data1 \
+  --n_processes 1 --num_iterations 1000 --seed 42 \
+  --save_per_batch 100000
+
+m6anet inference \
+  --input_dir evaluation/m6anet_inputs/data2 \
+  --out_dir evaluation/m6anet_outputs/data2 \
+  --n_processes 1 --num_iterations 1000 --seed 42 \
+  --save_per_batch 100000
 ```
 
-By default this reads submissions/Genomix_haribo_dataset2.csv, generated by run_pipeline.py. If that file has not been generated, run the prediction pipeline first or supply --predictions with its location. The scorer compares common sites and retains original labels; it does not threshold prediction probabilities. The recorded comparison is in evaluation/data2_evaluation.
+These commands use the package’s default HCT116 pretrained model and normalization.
 
-The repository includes the compact site-level m6Anet CSVs used for these comparisons. Large data.json and data.indiv_proba.csv intermediates are excluded; the commands above reproduce them. Pretrained m6Anet overlap with course data is unknown. Our model summarizes signals into fixed site features; m6Anet is a neural multiple-instance method with read-level inference and sampling-based site pooling. No significance test was performed.
+**m6Anet 2.0.2 saving workaround:** the installed code uses `if (it + 1) % args.save_per_batch` and lacks a final buffer flush. The default value `2` omitted the final 8 data0 and 3 data1 sites. Setting `100000`, larger than the number of batches in these datasets, makes every batch save and restores complete coverage. Setting `1` prevents saving in this version. This workaround changes saving behavior, not weights.
 
-Official sources: [m6Anet](https://github.com/GoekeLab/m6anet), [Bioconda package](https://bioconda.github.io/recipes/m6anet/README.html). Cite the m6Anet authors in the project report: Hendra et al. (2022), [Nature Methods](https://doi.org/10.1038/s41592-022-01666-1).
+### Compare data0/data1
 
-## Files
+```bash
+conda activate xgb
 
-- prepare_split.py: independent gene split generation from label metadata.
-- train.py / predict.py: the two core Task 1 entry points.
-- xgb_features.py: shared feature implementation; keep unchanged unless retraining.
-- artifacts/selected_xgb.joblib: the exact selected model, not the old all-data0 model.
-- splits/split_manifest.csv: the original RF split required for training/evaluation reproduction.
-- example/: input and newly generated expected predictions.
-- run_pipeline.py / validate_submission.py / test_pipeline.py: batch prediction and checks.
-- evaluate_test.py / prepare_m6anet.py / benchmark_m6anet.py: held-out evaluation tools.
-- prepare_m6anet_data2.py / evaluate_data2.py: separate data2 preparation and thresholded-label comparison.
-- evaluation/: final XGBoost results, official m6Anet site scores, complete data0/data1 comparison and separate data2 comparison.
-- PROVENANCE.json / AI_USAGE.md: package and assistance records.
+python benchmark_m6anet.py \
+  --m6anet-data0 evaluation/m6anet_outputs/data0/data.site_proba.csv \
+  --m6anet-data1 evaluation/m6anet_outputs/data1/data.site_proba.csv \
+  --output-dir evaluation/m6anet_recomputed
+```
 
-The folder contains no old logistic-regression training code, old model.joblib, old submissions or local editor settings. RF results are retained only as comparison records. Keep the original project folder as an archive. Publish the replacement folder in a public GitHub repository before submission, and retain the AWS Ubuntu verification record for peer evaluation. No repository has been created or published as part of this packaging.
+Both methods are scored on identical test sites. Final recorded results in `evaluation/m6anet_comparison/` cover all 39,019 original test observations.
 
-## Remaining report work
+### Compare data2 separately
 
-The course also requests a simple-baseline comparison. This package currently records the final XGBoost and official m6Anet comparisons; a simple-baseline result on the same independent test split still needs to be included or reproduced before claiming that all report requirements are complete. No GitHub publication or course submission is performed by these scripts.
+Generate the XGBoost data2 CSV using section 8 first, then run:
+
+```bash
+python evaluate_data2.py \
+  --labels ../data2/data.info \
+  --predictions submissions/Genomix_haribo_dataset2.csv \
+  --m6anet-predictions evaluation/m6anet_outputs/data2/data.site_proba.csv \
+  --output-dir evaluation/data2_recomputed
+```
+
+For evaluation, data2 labels are converted using:
+
+```text
+label >= 0.5 → 1
+label < 0.5 → 0
+```
+
+Original fractional labels are preserved. There are 189 exact `0.5` labels, assigned to class 1 under the agreed project convention. Data2 labels are not used for training or tuning, and prediction scores remain probabilities.
+
+The final comparison covers all 1,323 data2 sites. Its positive rate is 71.43%, so its PR metrics are interpreted separately from data0/data1.
+
+## 10. Results and limitations
+
+| Dataset | Model | ROC-AUC | PR-AUC | AP |
+|---|---|---:|---:|---:|
+| data0+data1 test | XGBoost | 0.876746 | 0.462438 | 0.462871 |
+| data0+data1 test | m6Anet | 0.878555 | 0.446030 | 0.446313 |
+| data0 test | XGBoost | 0.926827 | 0.530420 | 0.531173 |
+| data0 test | m6Anet | 0.935117 | 0.527973 | 0.528455 |
+| data1 test | XGBoost | 0.820503 | 0.399059 | 0.399623 |
+| data1 test | m6Anet | 0.813147 | 0.369707 | 0.370311 |
+| data2 | XGBoost | 0.704471 | 0.860361 | 0.860479 |
+| data2 | m6Anet | 0.673856 | 0.864178 | 0.864272 |
+
+PR-AUC uses trapezoidal integration; AP uses `average_precision_score`.
+
+XGBoost aggregates read signals into site features. m6Anet uses neural multiple-instance learning and sampling-based site pooling. Pretrained m6Anet training-data overlap is unknown.
+
+No significance testing was performed. Test comparisons informed method choice, so they should be described as exploratory rather than independent post-selection evaluation. See `RESULTS.md` for details.
+
+A suitable simple-baseline comparison still needs to be included in the final report.
+
+## 11. Script reference
+
+| Script | Purpose |
+|---|---|
+| `prepare_split.py` | Generate gene-level partitions |
+| `train.py` | Train and save XGBoost |
+| `predict.py` | Predict new JSON data |
+| `xgb_features.py` | Shared feature extraction |
+| `test_pipeline.py` | Run reproducibility and contract tests |
+| `validate_submission.py` | Validate prediction CSVs |
+| `run_pipeline.py` | Generate three full-dataset predictions |
+| `evaluate_test.py` | Evaluate held-out data0/data1 sites |
+| `prepare_m6anet.py` | Prepare data0/data1 test inputs |
+| `prepare_m6anet_data2.py` | Prepare all data2 inputs |
+| `benchmark_m6anet.py` | Compare data0/data1 predictions |
+| `evaluate_data2.py` | Evaluate data2 and optional m6Anet comparison |
+
+The repository includes the model, manifest, small example, metrics and compact site-level m6Anet scores. Full datasets, prepared signal JSON, individual-read predictions, environments, SSH keys and caches are excluded.
+
+## 12. Working on AWS
+
+Code can be edited locally and uploaded again, or edited remotely using VS Code Remote SSH. Local and server copies do not synchronize automatically.
+
+If feature extraction or training logic changes, retrain and update the model and reference results together.
+
+Download final results before stopping the machine. Stop it through RONIN/EC2: closing the terminal does not stop the instance. Storage and retained-address charges may continue while stopped.
+
+## References
+
+- [Official m6Anet repository](https://github.com/GoekeLab/m6anet)
+- [m6Anet Bioconda package](https://bioconda.github.io/recipes/m6anet/README.html)
+- Hendra et al. (2022), [Detection of m6A from direct RNA sequencing using a multiple instance learning framework](https://doi.org/10.1038/s41592-022-01666-1).
+- [Miniforge](https://github.com/conda-forge/miniforge)
