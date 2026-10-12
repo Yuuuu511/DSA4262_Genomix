@@ -51,7 +51,7 @@ conda activate xgb
 From the repository root, enter the project and install dependencies:
 
 ```bash
-cd m6a_project
+cd Task1
 python -m pip install -r requirements.txt
 ```
 
@@ -62,7 +62,9 @@ source "$HOME/miniforge3/etc/profile.d/conda.sh"
 conda activate xgb
 ```
 
-All remaining commands assume the current directory is `m6a_project/`.
+All remaining commands assume the current directory is `Task1/`.
+
+Directory names are case-sensitive on Ubuntu. Use **`Task1`** consistently. Renaming the GitHub directory does not automatically rename an existing copy on AWS.
 
 ## 2. Test the supplied model
 
@@ -127,7 +129,7 @@ repository/
 ├── data2/
 │   ├── dataset2.json.gz
 │   └── data.info
-└── m6a_project/
+└── Task1/
 ```
 
 Full datasets are not included in GitHub. They are obtained through the course data distribution. The prediction example can run without them.
@@ -379,9 +381,13 @@ The repository includes the model, manifest, small example, metrics and compact 
 
 Code can be edited locally and uploaded again, or edited remotely using VS Code Remote SSH. Local and server copies do not synchronize automatically.
 
-If feature extraction or training logic changes, retrain and update the model and reference results together.
+After connecting to the Ubuntu server, enter the project directory:
 
-Download final results before stopping the machine. Stop it through RONIN/EC2: closing the terminal does not stop the instance. Storage and retained-address charges may continue while stopped.
+```bash
+cd ~/Group_Project/Task1
+```
+
+If feature extraction or training logic changes, retrain and update the model and reference results together.
 
 ## References
 
