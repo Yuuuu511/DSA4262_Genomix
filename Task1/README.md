@@ -1,31 +1,53 @@
-# Task 1: m6A prediction with joint data0+data1 XGBoost
+# Task 1: m6A prediction with XGBoost
 
 The default predictor uses the selected **data0+data1 XGBoost**, trained on gene-disjoint train/validation partitions. It accepts new m6Anet-processed JSON or gzip JSON without labels and emits exactly `transcript_id,transcript_position,score`. Scores remain continuous in [0,1].
 
 The two entry points required by Task 1 are **train.py** and **predict.py**. Both use the shared, unchanged feature implementation in xgb_features.py. The remaining scripts reproduce splitting, validation, benchmarking and submission generation.
 
-## 1. Install and test
+## 1. Install on AWS Ubuntu and run the example
 
-Use Python 3.11 for a fresh AWS Ubuntu x86_64 environment. The model was trained with XGBoost 2.1.4, scikit-learn 1.6.1 and NumPy 2.2.3. Pin dependencies with the included file.
+### Requirements
+
+Target platform: AWS Ubuntu 24.04, Linux x86_64, CPU only. Use Python 3.11 and the pinned packages in [requirements.txt](requirements.txt). A GPU is not required. Git and an internet connection are needed to download the repository and dependencies; prediction then runs locally.
+
+The model was trained with XGBoost 2.1.4, scikit-learn 1.6.1 and NumPy 2.2.3. This reorganized package has been smoke-tested on macOS with the pinned dependencies. Its predecessor ran on AWS Ubuntu; verify this exact checkout on Ubuntu before final submission.
+
+### Install
+
+If conda is already installed, skip the following installer. On a fresh **Linux x86_64** server without conda, install [Miniforge](https://github.com/conda-forge/miniforge) under your home directory:
 
 ```bash
-# With conda available:
+curl -fsSL -o /tmp/Miniforge3.sh https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash /tmp/Miniforge3.sh -b -p "$HOME/miniforge3"
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+```
+
+Do not rerun the installer over an existing installation. Create a dedicated environment:
+
+```bash
 conda create -n m6a_task1 python=3.11 -y
 conda activate m6a_task1
-cd Task1
-python -m pip install -r requirements.txt
-python test_pipeline.py
 
-# No training data, labels, or internet download is needed for this example:
+git clone --branch task1_xinyu_XGBoost https://github.com/Yuuuu511/DSA4262_Genomix.git
+cd DSA4262_Genomix/Task1
+python -m pip install -r requirements.txt
+```
+
+If the repository is already downloaded, enter its `Task1` directory instead of cloning it again. Private repositories require GitHub authentication; the course submission repository must be publicly accessible by the deadline.
+
+### Quick prediction check — no training required
+
+Run these commands from `Task1/`:
+
+```bash
+python test_pipeline.py
 python predict.py --data example/test.json.gz --output example/predictions.csv
 python validate_submission.py --data example/test.json.gz --predictions example/predictions.csv
 ```
 
-The tests should report `Ran 4 tests ... OK`; the example should generate 20 rows. Its raw input is small and has no labels. expected_predictions.csv contains model output, not ground-truth labels. Existing prediction outputs are refused unless `--overwrite` is explicitly supplied.
+Expected: **4 tests OK**, **20 predictions**, and validation **PASS**. The bundled compressed example is approximately 60 KiB, below 1 MB, and contains no labels. [expected_predictions.csv](example/expected_predictions.csv) contains reference model scores, not ground truth. You do not need the training datasets or m6Anet installed to run this example.
 
-On this user's Mac, `/opt/anaconda3/bin/python3` already has the pinned dependencies. Use that executable in VS Code instead of activating an AWS-only environment. See LOCAL_RUN_ZH.md for commands when testing the package from Downloads.
-
-The package was checked on the Mac with pinned versions. The predecessor pipeline was exercised on AWS Ubuntu; this exact reorganized package still needs the team's Ubuntu smoke check before submission. Only load joblib files from trusted sources.
+Existing prediction files are protected. For an intentional repeat, add `--overwrite` to `predict.py`, then rerun the validator. Use `python predict.py --help` for usage and [CLI_REFERENCE.md](CLI_REFERENCE.md) for every script's arguments.
 
 ## 2. Predict unseen data
 
@@ -40,6 +62,17 @@ The default model is `artifacts/selected_xgb.joblib`, the NEW joint model. It re
 python predict.py --data /path/to/new.json.gz \
   --model artifacts/retrained/selected_xgb.joblib --output new_scores.csv
 ```
+
+Input uses m6Anet-processed, newline-delimited JSON: each site is nested as `transcript_id → transcript_position → sequence → reads`. Each read contains nine numeric signal features. Supply this processed file, not FASTQ or raw nanopore signal files.
+
+Output is a CSV with a header and one row per input site:
+
+```text
+transcript_id,transcript_position,score
+ENST00000007516,186,0.0784527063369751
+```
+
+`score` is the model's continuous m6A prediction score; larger values indicate stronger model support. The identifier and position refer to the input transcript, not a genomic chromosome coordinate.
 
 Only scores are output. A 0.5 binary decision is not applied to submission scores. These model probabilities have not been empirically calibrated as modification fractions.
 
@@ -86,7 +119,7 @@ Four candidates: max_depth in {3,5}, scale_pos_weight in {1,4}. Other settings: 
 
 Candidates fit only both datasets' TRAIN observations. Early stopping uses combined VALIDATION aucpr. Configuration selection maximizes `(combined validation ROC-AUC + combined validation trapezoidal PR-AUC)/2`. The selected round count/configuration is refitted on both datasets' TRAIN+VALIDATION observations. Test is not used for feature aggregation, fitting, early stopping or selection. Streaming the JSON files to find requested keys does not compute test-site features.
 
-The bundled selected model has depth=3, positive weight=1 and 912 boosting rounds. It was trained by the user on their Mac before this package was assembled. Packaging removed label-bearing metadata from the bundle without changing its fitted booster or feature implementation.
+The bundled selected model has depth=3, positive weight=1 and 912 boosting rounds. The fitted model was trained on macOS. The packaged bundle omits label-bearing metadata; its fitted booster and feature implementation are unchanged.
 
 Training writes the model, parameters, validation metrics overall/per dataset and local audit tables. Label-bearing audit/prediction tables generated locally are gitignored and are not part of this package. Nonempty output directories are refused; choose a new --output-dir for another run. No automatic resume is implemented for partial model fits.
 
@@ -123,20 +156,20 @@ python evaluate_test.py --model artifacts/retrained/selected_xgb.joblib \
   --evaluation-dir evaluation/recomputed_retrained
 ```
 
-Input labels are needed for evaluation, but not for prediction. Outputs default to evaluation/recomputed/, protecting the reference metrics in evaluation/test_metrics.csv. Report ROC-AUC, trapezoidal PR-AUC and AP separately overall/data0/data1. See RESULTS.md.
+Input labels are needed for evaluation, but not for prediction. Outputs default to evaluation/recomputed/, protecting the reference metrics in evaluation/test_metrics.csv. Report ROC-AUC, trapezoidal PR-AUC and AP separately overall/data0/data1. See [RESULTS.md](RESULTS.md).
 
 The original test partition has already been inspected during development. These results are exploratory reporting, not a fresh untouched final test. Do not keep tuning on them. The four additional unlabelled final datasets are for frozen-model prediction, subject to course rules.
 
 ## 7. Simple baseline
 
-The full handout's report section requests a simple baseline as well as m6Anet. The included fixed logistic baseline uses just nine signal means, with StandardScaler fitted inside a pipeline, C=1 and class_weight=balanced. It uses exactly the same joint-source split; it is not a second candidate submission model.
+An auxiliary fixed logistic baseline uses just nine signal means, with StandardScaler fitted inside a pipeline, C=1 and class_weight=balanced. It uses exactly the same joint-source split; it is not a second candidate submission model.
 
 ```bash
 python train_baseline.py
 python train_baseline.py --evaluate-test
 ```
 
-Default output: artifacts/retrained_baseline/. The reference baseline and its measured metrics are bundled separately as artifacts/baseline.joblib and evaluation/baseline_test_metrics.csv. It was trained during package preparation; it does not replace or alter the user's XGBoost model.
+Default output: artifacts/retrained_baseline/. The reference baseline and its measured metrics are bundled separately as artifacts/baseline.joblib and evaluation/baseline_test_metrics.csv. It is separate from the default XGBoost predictor.
 
 ## 8. Benchmark against official pretrained m6Anet
 
@@ -210,11 +243,14 @@ Expected full-source row counts: 121,838 data0; 90,810 data1; 1,323 data2. CSV n
 
 For the four new unlabelled datasets, run predict.py once per input with an appropriate unique output filename. They are not used in training, preprocessing fits, split selection or hyperparameter selection. Neither original submission scores on fitted sites nor high scores on new inputs establish true modification rates.
 
-## 11. What to publish and submit
+## 11. License
 
-- Publish this entire Task1 code folder and its compact model, label-free gene split, unlabelled example and reference metric summaries to the team's public GitHub repository by the deadline.
-- Upload the prediction CSVs separately to the course's specified submission destination. They do not have to be committed to GitHub unless requested.
-- Submit the written report and the final new-dataset prediction files according to course instructions. RESULTS.md supplies measured results/limits but is not a replacement for the full team report.
-- Do not publish raw training JSONs, label tables, local label-bearing audit tables, caches, SSH keys or conda environments. .gitignore protects normal Git operations; browser drag-and-drop uploads do NOT obey .gitignore.
+**License selection is pending team agreement.** This checkout does not currently include a `LICENSE` file and does not grant an open-source license. Before public submission, agree on a license, add its complete text at the repository root, and replace this paragraph with its name and a link to that file. Do not apply the team's code license to third-party software or datasets; their own terms apply.
 
-See SUBMISSION_CHECKLIST.md and CODE_MAP.md. This package does not create a GitHub branch, push files, merge a PR, replace the user's existing Task1 directory or alter RONIN.
+## 12. Citation and software references
+
+When referring to this project, cite the repository and the exact commit used:
+
+> DSA4262 Genomix team (2026). *DSA4262_Genomix: m6A prediction from direct RNA sequencing*. https://github.com/Yuuuu511/DSA4262_Genomix. Commit: replace with the commit actually used.
+
+No DOI or formal release identifier has been assigned here. Include the model training scope, dependency versions, split protocol and evaluation population when reporting results. Cite third-party methods separately using their official citation guidance: [XGBoost](https://github.com/dmlc/xgboost), [scikit-learn](https://scikit-learn.org/stable/about.html#citing-scikit-learn), and [m6Anet](https://github.com/GoekeLab/m6anet). Document AI assistance according to the course rules; see [AI_USAGE.md](AI_USAGE.md).
