@@ -25,6 +25,7 @@ def load_table(path, value_column, label=False):
     if not np.isfinite(positions).all() or (positions % 1 != 0).any():
         raise ValueError(f'{path}: positions must be finite integers')
     frame['transcript_position'] = positions.astype(np.int64)
+    # Each site must have one value so later merges remain one-to-one.
     if frame.duplicated(KEYS).any():
         raise ValueError(f'{path}: duplicate sites')
     values = pd.to_numeric(frame[value_column], errors='raise')
@@ -40,6 +41,7 @@ def load_table(path, value_column, label=False):
 def metrics(name, dataset, y, scores):
     if set(np.unique(y)) != {0, 1}:
         raise ValueError(f'{dataset}: both binary classes required for ROC/PR evaluation')
+    # Trapezoidal PR-AUC and average precision are calculated separately.
     precision, recall, _ = precision_recall_curve(y, scores)
     return {'model': name, 'dataset': dataset, 'n_sites': len(y),
             'positive_rate': float(np.mean(y)), 'roc_auc': float(roc_auc_score(y, scores)),
@@ -54,8 +56,10 @@ def evaluate(labels_path, predictions_path, output_dir, m6anet_path=None, label_
     if out.exists() and any(p.name != '.DS_Store' for p in out.iterdir()):
         raise FileExistsError('Data2 evaluation output directory is nonempty')
     labels = load_table(labels_path, 'label', label=True).rename(columns={'label': 'label_original'})
+    # Convert only the labels to binary values; keep the original fractions.
     labels['label_binary'] = (labels.label_original.ge(.5) if label_rule == 'ge0.5' else labels.label_original.eq(1)).astype(int)
     pred = load_table(predictions_path, 'score').rename(columns={'score': 'xgb_score'})
+    # An outer merge detects both missing predictions and extra predicted sites.
     aligned = labels.merge(pred, on=KEYS, how='outer', validate='one_to_one', indicator=True)
     if not aligned['_merge'].eq('both').all():
         raise ValueError('XGBoost predictions must cover exactly all data2 label sites')
@@ -71,10 +75,12 @@ def evaluate(labels_path, predictions_path, output_dir, m6anet_path=None, label_
                         'Prediction scores remain probabilities; no score threshold is applied.']}
     missing = None
     if m6anet_path:
+        # Use m6Anet site probabilities rather than its modification-ratio column.
         m6anet = load_table(m6anet_path, 'probability_modified').rename(columns={'probability_modified': 'm6anet_score'})
         comparison = aligned.merge(m6anet, on=KEYS, how='outer', validate='one_to_one', indicator=True)
         if comparison['_merge'].eq('right_only').any():
             raise ValueError('m6Anet returned sites outside data2 labels')
+        # Record sites without m6Anet scores and compare both models on shared sites.
         missing = comparison.loc[comparison['_merge'].eq('left_only'), KEYS].copy()
         common = comparison.loc[comparison['_merge'].eq('both')].copy()
         if common.empty:
@@ -87,6 +93,7 @@ def evaluate(labels_path, predictions_path, output_dir, m6anet_path=None, label_
         aligned = aligned.merge(m6anet, on=KEYS, how='left', validate='one_to_one')
     out.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(results).to_csv(out / 'data2_metrics.csv', index=False)
+    # This local audit table contains labels as well as prediction scores.
     aligned.to_csv(out / 'data2_evaluated_predictions.csv', index=False)
     (out / 'data2_evaluation_report.json').write_text(json.dumps(report, indent=2))
     if missing is not None:

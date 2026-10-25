@@ -16,6 +16,7 @@ import tempfile
 def prepare(data, output_dir):
     data = Path(data).resolve()
     out = Path(output_dir).resolve()
+    # Keep the input file outside the output directory.
     if data == out or out in data.parents:
         raise ValueError('Output directory must not contain the input file')
     if out.exists() and any(p.name != '.DS_Store' for p in out.iterdir()):
@@ -25,6 +26,7 @@ def prepare(data, output_dir):
     skipped = []
     prepared = 0
     opener = gzip.open if str(data).endswith('.gz') else open
+    # Prepare files in a temporary folder before moving them to the final location.
     with tempfile.TemporaryDirectory(prefix='data2_prepare_', dir=out.parent) as temp:
         temp = Path(temp)
         with opener(data, 'rt', encoding='utf-8') as handle, \
@@ -41,6 +43,7 @@ def prepare(data, output_dir):
                     for position, sequences in positions.items():
                         pos = int(position)
                         key = (tx, pos)
+                        # Each transcript-position pair should occur only once.
                         if key in seen or len(sequences) != 1:
                             raise ValueError(f'Duplicate site or unexpected sequences: {key}')
                         seen.add(key)
@@ -54,19 +57,23 @@ def prepare(data, output_dir):
                             if not isinstance(read, list) or len(read) != 9 or not all(
                                     isinstance(x, (int, float)) and math.isfinite(x) for x in read):
                                 raise ValueError(f'Reads must contain nine finite numbers: {key}')
+                        # Record low-coverage sites instead of passing them to m6Anet.
                         if len(reads) < 20:
                             skipped.append({'transcript_id': tx, 'transcript_position': pos,
                                             'n_reads': len(reads)})
                             continue
+                        # Add local read IDs without changing the nine signal values.
                         indexed = [read + [index] for index, read in enumerate(reads)]
                         encoded = (json.dumps({tx: {str(pos): {seq: indexed}}},
                                               separators=(',', ':'), ensure_ascii=True) + '\n').encode('ascii')
+                        # Binary file positions give the byte offsets needed in data.info.
                         start = signals.tell()
                         signals.write(encoded)
                         writer.writerow([tx, pos, len(reads), start, signals.tell()])
                         prepared += 1
         if not prepared:
             raise ValueError('No sites meet the m6Anet minimum of 20 reads')
+        # Save coverage counts and skipped sites for later evaluation checks.
         report = {'dataset': 'data2', 'requested_sites': len(seen), 'prepared_sites': prepared,
                   'minimum_reads': 20, 'excluded_low_coverage_sites': len(skipped),
                   'skipped_sites': skipped,

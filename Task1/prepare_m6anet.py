@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--labels1', type=Path, default=root.parent / 'data1/data.info')
     parser.add_argument('--output-dir', type=Path, required=True)
     args = parser.parse_args()
+    # Avoid mixing newly prepared inputs with files from an earlier run.
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
         raise FileExistsError('Choose a new m6Anet input directory')
     MANIFEST_PATH = args.manifest
@@ -35,6 +36,7 @@ def main():
                 )
             )
 
+    # Create a separate m6Anet input directory for each source dataset.
     for source, input_path in DATA_PATHS.items():
         output_path = OUTPUT_DIR / source
         output_path.mkdir(parents=True, exist_ok=True)
@@ -67,11 +69,13 @@ def main():
                     for position, sequences in positions.items():
                         key = (transcript_id, int(position))
 
+                        # Only prepare test sites from the shared gene split.
                         if key not in wanted[source]:
                             continue
 
                         if key in found:
                             raise ValueError(f"Duplicate site: {source}:{key}")
+                        # Track presence before filtering so low coverage is not counted as missing.
                         found.add(key)
 
                         if len(sequences) != 1:
@@ -101,6 +105,7 @@ def main():
                             }
                         }
 
+                        # Write ASCII bytes so file offsets match the positions in data.info.
                         encoded = (
                             json.dumps(
                                 output_record,
@@ -124,6 +129,7 @@ def main():
                         ])
                         eligible_count += 1
 
+        # Check that every requested test site was present in the source file.
         missing = wanted[source] - found
         if missing:
             raise ValueError(

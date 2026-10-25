@@ -19,7 +19,9 @@ from xgboost import XGBClassifier
 from xgb_features import FEATURE_NAMES, VERSION, iter_sites, site_features
 from prepare_split import eligible_metadata, COLUMNS
 
+# Include the dataset name because the same site can appear in both sources.
 KEYS = ['source_dataset', 'transcript_id', 'transcript_position']
+# Try four combinations of tree depth and positive-class weight.
 CANDIDATES = [(3, 1), (5, 1), (3, 4), (5, 4)]
 TRAINING_SCOPE = 'data0+data1 train+validation; fixed gene manifest'
 
@@ -52,6 +54,7 @@ def read_manifest(path):
         raise ValueError('Expected data0/data1 only')
     if not frame.label.isin([0, 1]).all():
         raise ValueError('Binary labels required')
+    # Keep related sites in one split to avoid leakage between partitions.
     if frame.groupby('gene_id').split.nunique().max() > 1:
         raise ValueError('A gene occurs in multiple splits')
     if frame.groupby('transcript_id').gene_id.nunique().max() > 1:
@@ -74,6 +77,7 @@ def build_manifest(split_file, labels0, labels1):
         raise ValueError('Split file requires gene_id,split; no site labels are bundled')
     if genes.gene_id.duplicated().any() or set(genes.split) != {'train', 'validation', 'test'}:
         raise ValueError('Gene assignments must be unique and include train/validation/test')
+    # Rebuild site membership locally; the public split file contains no labels.
     rows, excluded = eligible_metadata(labels0, labels1)
     rows = rows.merge(genes, on='gene_id', how='left', validate='many_to_one')
     if rows.split.isna().any():
@@ -91,6 +95,7 @@ def membership_hash(manifest):
 
 def extract_selected(paths, rows):
     """Compute features only for requested rows, keeping manifest order."""
+    # Map each requested site to its row so features stay aligned with labels.
     wanted = {key: i for i, key in enumerate(rows[KEYS].itertuples(index=False, name=None))}
     if len(wanted) != len(rows):
         raise ValueError('Duplicate requested sites')
@@ -124,6 +129,7 @@ def metrics(y, p):
         raise ValueError('Both classes required for evaluation')
     if len(p) != len(y) or not np.isfinite(p).all() or ((p < 0) | (p > 1)).any():
         raise ValueError('Invalid probability scores')
+    # Report trapezoidal PR area and average precision as separate metrics.
     precision, recall, _ = precision_recall_curve(y, p)
     return {'n_sites': len(y), 'positive_rate': float(y.mean()),
             'roc_auc': float(roc_auc_score(y, p)), 'pr_auc': float(auc(recall, precision)),
@@ -171,6 +177,7 @@ def validate_labels(paths, manifest):
     mapping = pd.concat(pairs, ignore_index=True).drop_duplicates()
     if mapping.groupby('transcript_id').gene_id.nunique().max() > 1:
         raise ValueError('Conflicting gene mappings in input labels')
+    # Use the available transcript-to-gene mappings to check both datasets.
     gene_map = mapping.drop_duplicates('transcript_id').set_index('transcript_id').gene_id
     keys = ['transcript_id', 'transcript_position']
     audit = []
@@ -210,6 +217,7 @@ def evaluate(args, manifest, signature):
     out = args.evaluation_dir or args.output_dir / 'evaluation'
     if out.exists() and any(out.iterdir()):
         raise FileExistsError('Evaluation output directory is nonempty; choose a new --evaluation-dir')
+    # This mode only scores the saved model on test sites; it does not fit it.
     rows = manifest.loc[manifest.split.eq('test')].reset_index(drop=True)
     X = extract_selected({'data0': args.data0, 'data1': args.data1}, rows)
     p = probabilities(bundle['model'], X, bundle['positive_weight'])
@@ -272,6 +280,7 @@ def main():
     out = args.output_dir.resolve()
     if out.exists() and any(out.iterdir()):
         raise FileExistsError('Output folder is nonempty; use a new folder')
+    # Leave test sites out of feature extraction for training and model selection.
     rows = manifest.loc[manifest.split.isin(['train', 'validation'])].reset_index(drop=True)
     print(rows.groupby(['source_dataset', 'split']).size().to_string(), flush=True)
     features_signature = feature_hash()
@@ -286,6 +295,7 @@ def main():
     for depth, weight in CANDIDATES:
         model = XGBClassifier(**model_parameters(depth, weight, args))
         print(f'Training depth={depth}, positive_weight={weight}...', flush=True)
+        # Use validation PR area for early stopping, not the test set.
         model.fit(X[train], y[train], eval_set=[(X[val], y[val])], verbose=False)
         p = probabilities(model, X[val], weight)
         m = metrics(y[val], p)
@@ -299,10 +309,12 @@ def main():
         print(json.dumps(result), flush=True)
         pd.DataFrame(results).to_csv(out / 'validation_metrics.csv', index=False)
         pd.DataFrame(detailed).to_csv(out / 'validation_metrics_by_dataset.csv', index=False)
+        # Choose the candidate using the average validation ROC-AUC and PR-AUC.
         if best is None or result['selection_score'] > best['selection_score']:
             best = result.copy()
             best_validation_predictions = p.copy()
     params = model_parameters(best['max_depth'], best['positive_weight'], args)
+    # Reuse the selected round count when fitting on train and validation together.
     params.pop('early_stopping_rounds')
     params['n_estimators'] = best['boosting_rounds']
     if not rows.split.isin(['train', 'validation']).all() or set(rows.source_dataset) != {'data0', 'data1'}:
@@ -312,6 +324,7 @@ def main():
     final = XGBClassifier(**params).fit(X, y)
     if sha256(args.manifest) != signature or feature_hash() != features_signature:
         raise ValueError('Manifest or feature implementation changed during training')
+    # Save the feature and split hashes so later runs can check compatibility.
     bundle = {'model': final, 'positive_weight': best['positive_weight'],
               'feature_names': FEATURE_NAMES, 'feature_version': VERSION,
               'feature_hash': features_signature, 'membership_sha256': membership_hash(manifest),
