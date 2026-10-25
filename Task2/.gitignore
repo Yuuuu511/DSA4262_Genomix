@@ -1,0 +1,24 @@
+# Local safety copies and integration checkout; never submit these.
+/.local-backup/
+/.team-repository/
+
+# Optional prediction inputs and bulky reproducible intermediates.
+/sg_nex_prediction_results/
+/outputs/tables/differential_all_Hct116_vs_K562.csv
+/outputs/*.zip
+
+# Audit/release machinery and superseded exploration.
+/audit_artifacts/
+/release_tools/
+/release_verification/
+/TASK2_*.md
+/legacy/
+/outputs/tables/differential_atlas/pairs/
+
+# Python, local environments, OS and editor caches.
+__pycache__/
+*.py[cod]
+.venv*/
+.ipynb_checkpoints/
+.DS_Store
+.streamlit/secrets.toml

@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "positive_thresholds": [
+    0.3,
+    0.5,
+    0.7,
+    0.9
+  ],
+  "base_delta_threshold": 0.3,
+  "min_detected_runs": 2,
+  "cell_lines": [
+    "A549",
+    "H9",
+    "HEYA8",
+    "Hct116",
+    "HepG2",
+    "K562",
+    "MCF7"
+  ],
+  "n_pairs": 21,
+  "comparison_tolerance": 1e-07,
+  "positive_run_count_threshold": 0.5,
+  "field_definitions": {
+    "selected": "Meets this row's positive_threshold and base_delta_threshold within comparison_tolerance; true for every exported candidate.",
+    "n_positive_runs_at_0_5_<cell>": "Observed runs with score >= 0.5; independent of atlas folder.",
+    "replicate_supported": "Strict separation of observed run-score ranges, not a statistical test.",
+    "site_key": "Normalized transcript_id and transcript_position; not a genomic locus."
+  },
+  "description": "XGBoost differential prediction candidates; not statistically validated differential methylation."
+}
