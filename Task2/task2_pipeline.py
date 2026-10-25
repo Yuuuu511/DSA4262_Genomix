@@ -1012,16 +1012,29 @@ def make_figure4_differential(
         0,
         linestyle="--",
         linewidth=1,
-        color="gray"
+        color="gray",
+        label="No score difference (Δp = 0)"
     )
 
-    for value in [-delta_threshold, delta_threshold]:
+    for i, value in enumerate([-delta_threshold, delta_threshold]):
         axes[0, 1].axvline(
             value,
             linestyle="--",
             linewidth=1,
-            color="#AA3377"
+            color="#AA3377",
+            label=(
+                f"Differential cutoff (|Δp| = {delta_threshold:g})"
+                if i == 0 else "_nolegend_"
+            )
         )
+
+    axes[0, 1].legend(
+        loc="upper right",
+        fontsize=8,
+        framealpha=1,
+        facecolor="white",
+        edgecolor="none"
+    )
 
     axes[0, 1].set(
         xlabel=f"Mean score difference ({cell_a} − {cell_b})",
