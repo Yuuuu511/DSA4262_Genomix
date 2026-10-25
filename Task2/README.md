@@ -7,7 +7,7 @@ Explore frozen prediction results for **23 nanopore direct RNA-seq runs from sev
 From the team repository root:
 
 ```sh
-cd task2
+cd Task2
 conda env create -f environment-task2.yml
 conda activate task2-release
 python -m streamlit run dashboard.py
