@@ -629,7 +629,7 @@ Use the registered team name and current course filename instructions for submis
 
 ### 8.2 Evaluate fractional data2 labels
 
-Data2 is not used for training or tuning. Binary ROC/PR evaluation requires an explicit convention.
+Data2 is not used for training or tuning. Labels >= 0.5 are positive and labels < 0.5 are negative.
 
 For `label >= 0.5`:
 
@@ -641,21 +641,9 @@ python evaluate_data2.py \
   --output-dir evaluation/recomputed_data2_ge0_5
 ```
 
-For `label == 1`:
+The script uses the confirmed ge0.5 label rule by default. Prediction scores remain continuous; the threshold is applied only to the ground-truth labels.
 
-```bash
-python evaluate_data2.py \
-  --labels "$DATA_ROOT/data2/data.info" \
-  --predictions submissions/Genomix_haribo_dataset2.csv \
-  --label-rule eq1 \
-  --output-dir evaluation/recomputed_data2_eq1
-```
-
-Confirm the course-approved convention before reporting final binary metrics. Neither rule is silently treated as official.
-
-Submission scores remain continuous under either convention. Do not compare PR areas across different label definitions or choose a convention to favor a model.
-
-Reference results for both conventions are summarized in [RESULTS.md](RESULTS.md).
+Reference results are summarized in [RESULTS.md](RESULTS.md).
 
 ### 8.3 Data2 m6Anet comparison
 
@@ -683,22 +671,23 @@ m6anet inference \
   --save_per_batch 100000
 ```
 
-Compare the existing XGBoost predictions and official m6Anet site probabilities:
+Compare XGBoost, the saved logistic baseline and pretrained m6Anet on the same data2 sites:
 
 ```bash
 conda activate m6a_task1
 
 python evaluate_data2.py \
+  --data "$DATA_ROOT/data2/dataset2.json.gz" \
   --labels "$DATA_ROOT/data2/data.info" \
   --predictions submissions/Genomix_haribo_dataset2.csv \
+  --baseline-model artifacts/baseline.joblib \
   --m6anet-predictions evaluation/m6anet_outputs/data2/data.site_proba.csv \
-  --label-rule ge0.5 \
-  --output-dir evaluation/recomputed_data2_m6anet_ge0_5
+  --output-dir evaluation/recomputed_data2_comparison
 ```
 
-To evaluate the `eq1` convention, repeat the scoring command with `--label-rule eq1` and a different output directory.
+The script uses the confirmed label rule: labels >= 0.5 are positive and labels < 0.5 are negative. Prediction scores remain continuous.
 
-This comparison is separate from the data0/data1 held-out benchmark. Sites missing from m6Anet output are reported, and common-site metrics use the same sites for both methods.
+This comparison is separate from the data0/data1 held-out benchmark. Missing m6Anet sites are reported, and all three models are compared on identical sites in the `data2_common_m6anet` results. The baseline is evaluated without retraining.
 
 ### 8.4 New unlabelled final datasets
 

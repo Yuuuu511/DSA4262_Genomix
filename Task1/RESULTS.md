@@ -42,16 +42,19 @@ The logistic baseline uses only nine signal means, a training-fitted StandardSca
 
 ## Separate synthetic data2 results
 
-All 1,323 sites were scored; no data2 observations were used to train or tune XGBoost or the logistic baseline. Fractional-label semantics must be confirmed with the instructor before calling either binary conversion official.
+All 1,323 data2 sites were evaluated. No data2 observations were used to train or tune XGBoost or the logistic baseline.
 
-| Label convention | Model | Positive rate | ROC-AUC | PR-AUC | AP |
-|---|---|---:|---:|---:|---:|
-| label >= 0.5 | Joint XGBoost | 71.43% | 0.684656 | 0.857501 | 0.857608 |
-| label >= 0.5 | Pretrained m6Anet | 71.43% | 0.673856 | 0.864178 | 0.864272 |
-| label == 1 | Joint XGBoost | 14.29% | 0.573850 | 0.185771 | 0.188089 |
-| label == 1 | Pretrained m6Anet | 14.29% | 0.591067 | 0.244892 | 0.247473 |
+Fractional labels are converted to binary labels using **label >= 0.5 as positive and label < 0.5 as negative**. The resulting positive rate is 71.43%. Prediction scores remain continuous.
 
-Exactly 189 labels equal 0.5. The >=0.5 convention assigns them positive; the ==1 convention assigns them negative. Equality-to-one reproduces the earlier Kopi leaderboard's displayed results/prevalence on the supplied teammate predictions, but that is an inference, not proof of the official course rule. Do not compare PR areas across these prevalence/label definitions or choose the convention to favour the new model.
+All three models are compared on the same 1,323 sites, with complete m6Anet coverage. PR-AUC denotes trapezoidal area; average precision (AP) is reported separately.
+
+| Model | Sites | Positive rate | ROC-AUC | PR-AUC | AP |
+|---|---:|---:|---:|---:|---:|
+| Joint XGBoost | 1,323 | 71.43% | 0.684656 | 0.857501 | 0.857608 |
+| Nine-mean logistic baseline | 1,323 | 71.43% | 0.415946 | 0.669080 | 0.669993 |
+| Pretrained m6Anet | 1,323 | 71.43% | 0.673856 | 0.864178 | 0.864272 |
+
+XGBoost outperformed the logistic baseline on all three metrics. Compared with pretrained m6Anet, XGBoost achieved a slightly higher ROC-AUC, while m6Anet achieved slightly higher PR-AUC and AP. No significance testing was performed.
 
 ## Benchmark differences and limitations
 
@@ -64,4 +67,4 @@ Exactly 189 labels equal 0.5. The >=0.5 convention assigns them positive; the ==
 - The old data0-only model was selected on data0 validation, whereas the joint model was selected on combined validation. Their historical comparison changes selection population as well as training-source scope; it is not a strict one-factor ablation.
 - All-source leaderboard CSVs include fitted observations and cannot establish independent generalization. Use the held-out table with its stated limitations for reporting.
 
-The existing frozen XGBoost was not retrained during packaging. Label-bearing bundle metadata was removed, while feature code, fitted booster and example predictions were verified unchanged. Reproducibility and check scope are listed in VERIFICATION.md.
+The existing frozen XGBoost was not retrained during packaging. Label-bearing bundle metadata was removed, while feature code, fitted booster and example predictions were verified unchanged. The prediction verification scope is described in the README.
