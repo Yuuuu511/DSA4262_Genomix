@@ -44,22 +44,26 @@ def eligible_metadata(data0_labels, data1_labels=None):
     pairs = data0[['transcript_id', 'gene_id']].dropna().drop_duplicates()
     if pairs.transcript_id.duplicated().any():
         raise ValueError('A data0 transcript maps to multiple genes')
+    # Use data0 as the reference for missing transcript-to-gene mappings.
     gene_map = pairs.set_index('transcript_id').gene_id
     parts = []
     excluded = {}
     for source, frame in [('data0', data0)] + (
             [('data1', load_labels(data1_labels, 'data1'))] if data1_labels else []):
         frame = frame.copy()
+        # Keep existing gene IDs and fill missing ones from the reference map.
         if 'gene_id' not in frame:
             frame['gene_id'] = frame.transcript_id.map(gene_map)
         else:
             frame['gene_id'] = frame.gene_id.fillna(frame.transcript_id.map(gene_map))
         frame['gene_id'] = frame.gene_id.astype('string').str.strip().replace('', pd.NA)
+        # Count and exclude sites without a gene ID because they cannot be grouped reliably.
         excluded[source] = int(frame.gene_id.isna().sum())
         frame = frame.loc[frame.gene_id.notna()].copy()
         # Reproduce the ordering of the original pandas outer JSON/label merge.
         frame = frame.sort_values(SITE_KEYS, kind='stable').reset_index(drop=True)
         frame['source_dataset'] = source
+        # Include the source so shared sites in data0 and data1 have distinct sample IDs.
         frame['sample_id'] = source + ':' + frame.transcript_id + ':' + frame.transcript_position.astype(str)
         parts.append(frame)
     rows = pd.concat(parts, ignore_index=True)
@@ -71,14 +75,17 @@ def eligible_metadata(data0_labels, data1_labels=None):
 
 
 def make_manifest(rows, seed=42, test_fraction=.20, validation_fraction=.25):
+    # Hold out test genes first; all sites from a gene stay together.
     outer = GroupShuffleSplit(n_splits=1, test_size=test_fraction, random_state=seed)
     dev_idx, test_idx = next(outer.split(rows, groups=rows.gene_id))
     dev = rows.iloc[dev_idx]
+    # Select validation genes from the remaining genes, using a second fixed seed.
     inner = GroupShuffleSplit(n_splits=1, test_size=validation_fraction, random_state=seed + 1)
     train_idx, val_idx = next(inner.split(dev, groups=dev.gene_id))
     partitions = [('train', dev.iloc[train_idx]), ('validation', dev.iloc[val_idx]),
                   ('test', rows.iloc[test_idx])]
     manifest = pd.concat([frame.assign(split=split) for split, frame in partitions], ignore_index=True)[COLUMNS]
+    # Check that neither a gene nor a shared site appears in multiple partitions.
     if manifest.groupby('gene_id').split.nunique().max() > 1:
         raise ValueError('A gene crosses splits')
     if manifest.groupby(SITE_KEYS).split.nunique().max() > 1:
@@ -130,6 +137,7 @@ def main():
             check_raw_coverage(raw, load_labels(labels, source), source)
     rows, excluded = eligible_metadata(args.data0_labels, args.data1_labels)
     manifest = make_manifest(rows, args.seed, args.test_fraction, args.validation_fraction_of_remaining)
+    # Compare gene assignments rather than CSV row order when reproducing a split.
     if args.check_against:
         reference = pd.read_csv(args.check_against, dtype={'gene_id': 'string'})
         actual = manifest[['gene_id','split']].drop_duplicates().sort_values('gene_id').reset_index(drop=True)
@@ -137,6 +145,7 @@ def main():
         pd.testing.assert_frame_equal(actual, reference, check_dtype=False)
         print('PASS: exactly reproduces fixed gene assignments.')
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    # Export only gene assignments; keep site labels in the local input files.
     manifest[['gene_id','split']].drop_duplicates().sort_values('gene_id').to_csv(args.output, index=False)
     print(manifest.groupby(['source_dataset', 'split']).size().to_string())
     print('Excluded unmapped genes:', json.dumps(excluded))

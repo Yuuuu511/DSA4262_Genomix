@@ -2,19 +2,19 @@
 import argparse
 import json
 from pathlib import Path
-
 import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-
 from train import build_manifest, extract_selected, grouped_metrics, membership_hash, sha256
 from xgb_features import FEATURE_NAMES, VERSION
 
 
 def classifier():
+    # Use only the first nine features, which are the signal means.
+    # Keeping the scaler in the pipeline fits it only on the supplied training rows.
     return Pipeline([
         ('means', ColumnTransformer([('scale_nine_means', StandardScaler(), list(range(9)))], remainder='drop')),
         ('classifier', LogisticRegression(C=1, class_weight='balanced', max_iter=2000,
@@ -34,18 +34,26 @@ def main():
     parser.add_argument('--evaluate-test', action='store_true')
     parser.add_argument('--model', type=Path)
     args = parser.parse_args()
+
+    # Reuse the XGBoost gene partitions for a consistent comparison.
     manifest = build_manifest(args.manifest, args.labels0, args.labels1)
     paths = {'data0': args.data0, 'data1': args.data1}
+
     if args.evaluate_test:
         model_path = args.model or args.output_dir/'baseline.joblib'
         bundle = joblib.load(model_path)
+
+        # Check that the saved model uses the same sites and feature code.
         if bundle.get('membership_sha256') != membership_hash(manifest):
             raise ValueError('Baseline membership differs from supplied split/labels')
         if bundle.get('feature_hash') != sha256(root/'xgb_features.py'):
             raise ValueError('Baseline feature implementation differs')
+
         out = args.output_dir/'evaluation'
         if out.exists() and any(out.iterdir()):
             raise FileExistsError('Baseline evaluation output already exists')
+
+        # Evaluate the saved model on test sites without fitting it again.
         rows = manifest.loc[manifest.split.eq('test')].reset_index(drop=True)
         X = extract_selected(paths, rows)
         result = grouped_metrics(rows, bundle['model'].predict_proba(X)[:,1], {'model':'logistic_9means'})
@@ -54,19 +62,28 @@ def main():
         print(pd.DataFrame(result).to_string(index=False))
         print('Fixed baseline reporting only; no tuning based on test.')
         return
+
     if args.model:
         parser.error('--model is for evaluation only')
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
         raise FileExistsError('Choose a new baseline output directory')
+
+    # Test sites are excluded from both fits below.
     rows = manifest.loc[manifest.split.isin(['train','validation'])].reset_index(drop=True)
     X = extract_selected(paths, rows)
     train_mask, val_mask = rows.split.eq('train').to_numpy(), rows.split.eq('validation').to_numpy()
     y = rows.label.to_numpy()
+
+    # Measure validation performance using a model fitted on training rows only.
     model = classifier().fit(X[train_mask], y[train_mask])
     result = grouped_metrics(rows.loc[val_mask].reset_index(drop=True),
                              model.predict_proba(X[val_mask])[:,1], {'model':'logistic_9means'})
+
+    # Refit the fixed baseline and its scaler on train plus validation.
     final = classifier().fit(X,y)
     args.output_dir.mkdir(parents=True,exist_ok=True)
+
+    # Save compatibility information alongside the fitted pipeline.
     bundle = {'model':final,'positive_weight':1,'feature_names':FEATURE_NAMES,'feature_version':VERSION,
               'feature_hash':sha256(root/'xgb_features.py'),'membership_sha256':membership_hash(manifest),
               'training_data':'data0+data1 train+validation; nine-mean logistic baseline'}
