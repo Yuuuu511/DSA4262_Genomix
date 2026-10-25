@@ -28,7 +28,7 @@ Do not rerun the installer over an existing installation. Create a dedicated env
 conda create -n m6a_task1 python=3.11 -y
 conda activate m6a_task1
 
-git clone --branch task1_xinyu_XGBoost https://github.com/Yuuuu511/DSA4262_Genomix.git
+git clone --branch main https://github.com/Yuuuu511/DSA4262_Genomix.git
 cd DSA4262_Genomix/Task1
 python -m pip install -r requirements.txt
 ```
@@ -47,7 +47,7 @@ python validate_submission.py --data example/test.json.gz --predictions example/
 
 Expected: **4 tests OK**, **20 predictions**, and validation **PASS**. The bundled compressed example is approximately 60 KiB, below 1 MB, and contains no labels. [expected_predictions.csv](example/expected_predictions.csv) contains reference model scores, not ground truth. You do not need the training datasets or m6Anet installed to run this example.
 
-Existing prediction files are protected. For an intentional repeat, add `--overwrite` to `predict.py`, then rerun the validator. Use `python predict.py --help` for usage and [CLI_REFERENCE.md](CLI_REFERENCE.md) for every script's arguments.
+Existing prediction files are protected. For an intentional repeat, add `--overwrite` to `predict.py`, then rerun the validator. Use `python predict.py --help` for usage.
 
 ## 2. Predict unseen data
 
@@ -231,7 +231,7 @@ python evaluate_data2.py --label-rule ge0.5
 python evaluate_data2.py --label-rule eq1 --output-dir evaluation/recomputed_data2_eq1
 ```
 
-These commands expect submissions/Genomix_haribo_dataset2.csv, generated below. Optional --m6anet-predictions accepts the official data2 data.site_proba.csv. prepare_m6anet_data2.py prepares all data2 sites separately. Reference results for BOTH conventions are included, clearly separated under evaluation/data2/. Confirm the official rule; do not choose a convention to favour a model. Submission scores remain continuous regardless of evaluation convention.
+These commands expect submissions/Genomix_haribo_dataset2.csv, generated below. Optional --m6anet-predictions accepts the official data2 data.site_proba.csv. prepare_m6anet_data2.py prepares all data2 sites separately. Confirm the official rule; do not choose a convention to favour a model. Submission scores remain continuous regardless of evaluation convention.
 
 ## 10. Generate leaderboard files
 
@@ -253,4 +253,4 @@ When referring to this project, cite the repository and the exact commit used:
 
 > DSA4262 Genomix team (2026). *DSA4262_Genomix: m6A prediction from direct RNA sequencing*. https://github.com/Yuuuu511/DSA4262_Genomix. Commit: replace with the commit actually used.
 
-No DOI or formal release identifier has been assigned here. Include the model training scope, dependency versions, split protocol and evaluation population when reporting results. Cite third-party methods separately using their official citation guidance: [XGBoost](https://github.com/dmlc/xgboost), [scikit-learn](https://scikit-learn.org/stable/about.html#citing-scikit-learn), and [m6Anet](https://github.com/GoekeLab/m6anet). Document AI assistance according to the course rules; see [AI_USAGE.md](AI_USAGE.md).
+No DOI or formal release identifier has been assigned here. Include the model training scope, dependency versions, split protocol and evaluation population when reporting results. Cite third-party methods separately using their official citation guidance: [XGBoost](https://github.com/dmlc/xgboost), [scikit-learn](https://scikit-learn.org/stable/about.html#citing-scikit-learn), and [m6Anet](https://github.com/GoekeLab/m6anet). Document AI assistance according to the course rules.
