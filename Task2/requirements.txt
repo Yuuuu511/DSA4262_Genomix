@@ -1,0 +1,3 @@
+# Streamlit Community Cloud discovers this file beside dashboard.py.
+# Reuse the tested direct dependencies, including Plotly and PyArrow.
+-r requirements-task2.txt
