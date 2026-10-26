@@ -1,5 +1,4 @@
 # Installed runtime dependency closure of requirements-task2.txt.
-# Tested Python 3.12.9 / macOS dsa3101; no fresh online install performed.
 altair==6.0.0
 anyio==4.13.0
 attrs==26.1.0

@@ -439,8 +439,11 @@ def page_overview():
             x="cell_line", y="n_sites",
             points="all", color="cell_line",
             color_discrete_map=COLORS,
+            category_orders={"cell_line": cells},
             hover_data=["run"],
         )
+        # Center run points on each box; jitter is relative to the box width.
+        fig.update_traces(pointpos=0, jitter=0.25)
         fig.update_layout(
             title="Candidate-site coverage by run",
             yaxis_title="Sites per run",
