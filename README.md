@@ -7,3 +7,21 @@ This project develops a reproducible machine learning workflow to predict m6A si
 - Evaluate prediction accuracy and generalisation.
 - Identify modification patterns that are reproducible within cell lines and differ across cell lines.
 - Support exploratory biological analysis through an interactive visualisation platform.
+
+## Project Documentation
+
+### Task 1: m6A Prediction
+
+Training, prediction and model evaluation using XGBoost.
+
+See the [Task 1 documentation](Task1/README.md) for installation instructions, a step-by-step prediction example, input/output formats and model evaluation.
+
+### Task 2: SG-NEx Analysis and Visualisation
+
+Analysis of prediction patterns across SG-NEx runs and cell lines, with an interactive visualisation dashboard.
+
+See the [Task 2 documentation](Task2/README.md) for the analysis workflow and dashboard instructions.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE.md) for details.
