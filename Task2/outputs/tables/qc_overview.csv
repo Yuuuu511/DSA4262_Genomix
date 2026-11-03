@@ -1,0 +1,36 @@
+metric,value,note
+total_analyzed_runs,23,
+raw_runs_checked,23,
+runs_with_complete_input_qc,23,
+total_n_records,28670080,Measured runs only; unavailable values are not zero
+total_n_valid_records,28670080,Measured runs only; unavailable values are not zero
+total_n_invalid_records,0,Measured runs only; unavailable values are not zero
+total_nan_scores,0,Measured runs only; unavailable values are not zero
+total_infinite_scores,0,Measured runs only; unavailable values are not zero
+raw_runs_agreeing_with_cache,23,"Counts exact; score moments rtol=1e-5, atol=1e-7 for float32 arithmetic"
+total_missing_transcript_ids,0,Sum of measured runs only; NA when none audited
+total_missing_positions,0,Sum of measured runs only; NA when none audited
+total_invalid_positions,0,Sum of measured runs only; NA when none audited
+total_missing_scores,0,Sum of measured runs only; NA when none audited
+total_invalid_scores,0,Sum of measured runs only; NA when none audited
+total_duplicate_site_records,0,Sum of measured runs only; NA when none audited
+total_nonfinite_scores,0,Sum of measured runs only; NA when none audited
+total_out_of_range_scores,0,Sum of measured runs only; NA when none audited
+runs_with_descriptive_warnings,2,
+runs_with_input_warnings,0,Includes unavailable raw input audit; not evidence of bad records
+runs_with_observed_input_problems,0,
+input_validation,complete,"Cached accepted record/site counts and moments are historical; missing validation metrics are NA, never zero"
+reproducibility_cell_mean_pearson_min,0.5902895072487999,
+reproducibility_cell_mean_pearson_max,0.6702220826455718,
+runs_with_reproducibility_warnings,19,
+runs_with_any_qc_warning,2,"Observed input/descriptive anomalies or unavailable audits; metadata dependence is context, not an anomaly"
+cross_cell_evaluable_union_sites,2282424,Each cell observation requires ≥2 runs; detection is not modification specificity
+cross_cell_sites_observed_all_cells,440569,
+baseline_selected_regression_matches,True,Exact original pipeline comparisons; existing files never written
+baseline_strict_regression_matches,True,Exact original pipeline comparisons; existing files never written
+atlas_baseline_selected_regression_matches,True,Audited tolerance convention; canonical site-set comparison
+atlas_baseline_strict_regression_matches,True,Audited tolerance convention; canonical site-set comparison
+baseline_matched_sites,810786,
+baseline_selected,2736,
+baseline_strict,2230,
+atlas_vs_original_baseline_extra_sites,0,Atlas uses 1e-7 tolerance; original focus CSV uses exact comparisons

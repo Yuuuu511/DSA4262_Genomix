@@ -1,4 +1,12 @@
 
+import sys
+
+if "--qc-tests" in sys.argv:
+    import unittest
+    suite = unittest.defaultTestLoader.loadTestsFromName("test_quality_control")
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    sys.exit(0 if result.wasSuccessful() else 1)
+
 import pandas as pd
 from itertools import combinations
 

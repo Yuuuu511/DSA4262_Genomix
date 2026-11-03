@@ -1,0 +1,39 @@
+{
+  "site_key": [
+    "transcript_id",
+    "transcript_position"
+  ],
+  "cell_lines": [
+    "A549",
+    "H9",
+    "HEYA8",
+    "Hct116",
+    "HepG2",
+    "K562",
+    "MCF7"
+  ],
+  "positive_threshold": 0.5,
+  "min_observed_runs": 2,
+  "sharing_thresholds": [
+    0.45,
+    0.5,
+    0.55
+  ],
+  "sharing_comparison": "exact >=, as in cross-cell consensus analysis",
+  "differential_comparison_tolerance": 1e-07,
+  "baseline": {
+    "n_matched": 810786,
+    "n_eligible": 810786,
+    "n_removed": 0,
+    "n_baseline_selected": 2736,
+    "n_baseline_strict": 2230,
+    "raw_pair_data": "complete; six focus run files validated against cached count/mean/min/max/sample SD"
+  },
+  "consensus": "Mean of available valid run scores; missing runs not zero",
+  "std_definition": "Sample SD (ddof=1), reused from validated consensus",
+  "strict_support": "Canonical conservative_gap > 0; higher-cell observed minimum exceeds lower-cell observed maximum",
+  "within_pair_definition": "Mean absolute score difference over available unordered run pairs within a site",
+  "cross_pair_definition": "Mean absolute score difference over available Hct116-by-K562 run combinations within a site",
+  "ecdf": "Exact empirical fractions evaluated at fixed 0.001-spaced score differences; plotting connects these grid points; summaries/quantiles are exact",
+  "interpretation": "Descriptive prediction consistency; no independent biological replicate model, hypothesis tests or experimental validation"
+}

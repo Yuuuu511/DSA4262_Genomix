@@ -22,3 +22,12 @@ __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 .streamlit/secrets.toml
+
+# External raw predictions and local QC configuration/intermediates.
+**/sg_nex_prediction_results/
+*_rep[0-9]*_run[0-9]*.csv
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-journal

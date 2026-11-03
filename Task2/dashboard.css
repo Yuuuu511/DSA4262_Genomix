@@ -1,0 +1,155 @@
+/* Scoped to the scientific content and existing Streamlit sidebar. */
+[data-testid="stMainBlockContainer"] {
+  max-width: 1600px;
+  padding-inline: 2.5rem;
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
+}
+.st-key-science_dashboard {
+  color: #17243b;
+}
+.st-key-science_dashboard h1 {
+  font-size: 36px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+.st-key-science_dashboard h2,
+.st-key-science_dashboard h3 {
+  font-size: 25px;
+  line-height: 1.3;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+.st-key-science_dashboard p,
+.st-key-science_dashboard li {
+  font-size: 16px;
+  line-height: 1.65;
+}
+.st-key-science_dashboard [data-testid="stCaptionContainer"] p {
+  color: #475569;
+  font-size: 15.5px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.st-key-science_dashboard [data-testid="stWidgetLabel"] p,
+.st-key-science_dashboard [data-testid="stMetricLabel"] p {
+  font-size: 15.5px;
+}
+.st-key-science_dashboard [data-testid="stMetricValue"] {
+  font-size: 30px;
+  line-height: 1.25;
+}
+/* Keys are explicit, public st.container keys, not generated Emotion classes. */
+.st-key-science_dashboard [class*="st-key-panel_"] {
+  background: #f7f9fc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+.st-key-science_dashboard [class*="st-key-panel_"] h3 {
+  font-size: 20px;
+}
+.st-key-science_dashboard [class*="st-key-plot_note_"] p {
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.st-key-science_dashboard [class*="st-key-plot_note_"] [data-testid="stCaptionContainer"] p {
+  color: #475569;
+  font-size: 15.5px;
+  font-weight: 400;
+}
+[data-testid="stSidebar"] h1 {
+  font-size: 26px;
+  line-height: 1.25;
+}
+[data-testid="stSidebar"] h3 {
+  font-size: 20px;
+  margin-top: 0.4rem;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label p {
+  font-size: 16.5px;
+  line-height: 1.5;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label {
+  padding-block: 5px;
+  border-radius: 7px;
+}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+  background: #e8eef7;
+}
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+  font-size: 15.5px;
+}
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #475569;
+}
+[data-testid="stSidebar"] [data-testid="stSliderTickBar"] {
+  font-size: 14px;
+}
+[data-testid="stSidebar"] hr {
+  margin-block: 1.25rem;
+}
+@media (max-width: 1050px) {
+  [data-testid="stMainBlockContainer"] { padding-inline: 1.5rem; }
+  .st-key-science_dashboard [data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap;
+  }
+  .st-key-science_dashboard [data-testid="stColumn"] {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+}
+@media (max-width: 640px) {
+  [data-testid="stMainBlockContainer"] {
+    padding: 1.75rem 1rem 2rem;
+  }
+  .st-key-science_dashboard h1 { font-size: 32px; }
+  .st-key-science_dashboard h3 { font-size: 23px; }
+  .st-key-science_dashboard [class*="st-key-panel_"] {
+    padding: 14px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+}
+/* Section headings sit above charts; chart titles stay at 19px inside Plotly. */
+.st-key-science_dashboard .st-key-panel_overview_detection h3,
+.st-key-science_dashboard .st-key-panel_overview_table h3,
+.st-key-science_dashboard .st-key-panel_rep_thresholds h3,
+.st-key-science_dashboard .st-key-panel_rep_table h3,
+.st-key-science_dashboard .st-key-panel_cross_pair h3,
+.st-key-science_dashboard .st-key-panel_baseline h3,
+.st-key-science_dashboard .st-key-panel_atlas_transcripts h3,
+.st-key-science_dashboard .st-key-panel_atlas_table h3,
+.st-key-science_dashboard .st-key-panel_transcript_ranges h3,
+.st-key-science_dashboard .st-key-panel_transcript_table h3 {
+  font-size: 24px;
+}
+.st-key-science_dashboard [data-testid="stMetricValue"] p {
+  font-size: 30px;
+  line-height: 1.25;
+}
+[data-testid="stSidebar"] [data-testid="stSliderThumbValue"],
+[data-testid="stSidebar"] [data-testid="stSliderTickBar"] {
+  font-size: 15px;
+}
+
+@media (max-width: 1050px) {
+  .st-key-science_dashboard [class*="st-key-metrics_"] [data-testid="stColumn"] {
+    flex: 1 1 calc(50% - 16px);
+    width: calc(50% - 16px);
+  }
+}
+
+.st-key-baseline_finding p {
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.6;
+}

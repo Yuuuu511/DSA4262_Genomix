@@ -1,0 +1,4 @@
+group,n_sites,D_gt_both_within_mean_pair_pct,between_runs_gt_both_within_mean_pair_pct
+all_matched,810786,14.489396708872626,15.7999768126238
+baseline_candidates,2736,85.78216374269006,88.19444444444444
+other_matched,808050,14.248004455169852,15.55485427881938

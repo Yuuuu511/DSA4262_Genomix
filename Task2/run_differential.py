@@ -32,6 +32,14 @@ EPS = 1e-7  # Preserve the audited float32 boundary convention.
 SITE_KEY = ["transcript_id", "transcript_position"]
 
 
+def candidate_mask(d, positive_threshold, delta_threshold):
+    """Canonical atlas selection, including its audited float32 tolerance."""
+    return (
+        (d["abs_delta_mean"] >= delta_threshold - EPS)
+        & (d["higher_mean_score"] >= positive_threshold - EPS)
+    )
+
+
 def tag(t):
     return f"{float(t):.1f}"
 
@@ -248,16 +256,11 @@ def build_all(output, min_runs):
         ].copy()
 
         for t in POS_THRESHOLDS:
-            selected = base[
-                base["higher_mean_score"] >= t - EPS
-            ].copy()
+            selected = base[candidate_mask(base, t, BASE_DELTA)].copy()
 
             # These rows belong to this folder's candidate set. The
             # pipeline's inherited flag instead refers to positive >= 0.5.
-            selected["selected"] = (
-                (selected["abs_delta_mean"] >= BASE_DELTA - EPS)
-                & (selected["higher_mean_score"] >= t - EPS)
-            )
+            selected["selected"] = candidate_mask(selected, t, BASE_DELTA)
             selected["positive_threshold"] = t
             selected["base_delta_threshold"] = BASE_DELTA
             # Consensus positive-run counts were computed at 0.5, even

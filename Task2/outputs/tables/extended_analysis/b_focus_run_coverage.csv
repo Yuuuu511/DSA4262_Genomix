@@ -1,0 +1,7 @@
+cell_line,run,n_valid_source_sites,n_matched_observed
+Hct116,Hct116_rep3_run1,1391230,755695
+Hct116,Hct116_rep3_run4,1302514,751007
+Hct116,Hct116_rep4_run3,1599747,791172
+K562,K562_rep4_run1,1104444,746100
+K562,K562_rep5_run1,1052601,731224
+K562,K562_rep6_run1,999100,663073
