@@ -160,6 +160,14 @@ available_cells = list(manifest["cell_lines"])
 cells = [c for c in CELLS if c in available_cells]
 cells += [c for c in available_cells if c not in cells]
 
+# Keep the cutoff independent of Streamlit's conditional-widget cleanup.
+st.session_state.setdefault("differential_threshold", 0.30)
+
+
+def save_differential_threshold():
+    st.session_state["differential_threshold"] = st.session_state["_differential_threshold"]
+
+
 with st.sidebar:
     st.title("🧬 SG-NEx Explorer")
 
@@ -190,11 +198,12 @@ with st.sidebar:
     if page in ["Differential Atlas", "Transcript Explorer"]:
         delta_t = st.slider(
             "Score-difference cutoff", min_value=0.30, max_value=0.90,
-            value=0.30, step=0.05, key="differential_threshold",
+            value=st.session_state["differential_threshold"], step=0.05,
+            key="_differential_threshold", on_change=save_differential_threshold,
         )
         st.caption("Select candidates using both the positive cutoff and the gap between cell-line averages.")
     else:
-        delta_t = st.session_state.get("differential_threshold", 0.30)
+        delta_t = st.session_state["differential_threshold"]
         st.caption("The positive cutoff affects positive calls and overlap. Continuous-score correlations and site coverage do not change.")
 
 
