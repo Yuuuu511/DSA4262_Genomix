@@ -2,6 +2,8 @@
 
 Explore frozen prediction results for **23 nanopore direct RNA-seq runs from seven cell lines**. The Streamlit dashboard has five pages: Overview, Reproducibility, Cross-cell Similarity, Differential Atlas and Transcript Explorer. No model training or inference is needed to run it.
 
+For online access, use the [deployed dashboard](https://dsa4262genomix.streamlit.app/).
+
 ## Run the dashboard
 
 From the team repository root:
@@ -13,16 +15,19 @@ conda activate task2-release
 python -m streamlit run dashboard.py
 ```
 
-Open the local URL printed by Streamlit (normally `http://localhost:8501`). For a Python 3.12.9 virtual environment instead of Conda:
+Open the local URL printed by Streamlit (normally `http://localhost:8501`). Alternatively, from the repository root, use a Python 3.12.9 virtual environment instead of Conda:
 
 ```sh
+cd Task2
 python3.12 -m venv .venv-task2
 source .venv-task2/bin/activate
 python -m pip install -r requirements-task2-lock.txt
 python -m streamlit run dashboard.py
 ```
 
-The tested environment uses **Python 3.12.9 and PyArrow 26.0.0**. Keep the pinned dependencies: PyArrow 19.0.0 cannot read the supplied consensus Parquet files. The `outputs/` data are included; raw prediction CSVs are unnecessary for the dashboard. Restart the app or clear its cache after replacing data files.
+The tested environment uses **Python 3.12.9 and PyArrow 26.0.0**. Use the pinned dependencies for compatibility with the supplied Parquet files. The `outputs/` data are included; raw prediction CSVs are unnecessary for the dashboard. Restart the app or clear its cache after replacing data files.
+
+The dashboard resolves data relative to `dashboard.py` and requires `dashboard.css` beside it. Under `outputs/tables/`, startup requires `prediction_overview.csv`, `replicate_pairwise.csv`, `cross_cell_pairwise.csv`, and `differential_atlas/atlas_manifest.json`. Each `differential_atlas/positive_{0.3,0.5,0.7,0.9}/` folder needs `differential_pair_summary.csv` and `differential_site_atlas.parquet` to support its cutoff. Keep all seven `consensus_<cell>.parquet` files for complete Transcript Explorer coverage. The detection-coverage table and fixed Figure 4 are optional; missing files omit their respective displays without preventing startup.
 
 ## Files and results
 
@@ -30,32 +35,42 @@ The tested environment uses **Python 3.12.9 and PyArrow 26.0.0**. Keep the pinne
 - `dashboard.py`: interactive explorer; positive thresholds 0.3/0.5/0.7/0.9 and absolute score-difference thresholds 0.30–0.90 in steps of 0.05.
 - `task2_pipeline.py`: generates summaries, consensus, pairwise comparisons and figures from existing prediction CSVs.
 - `run_differential.py`: builds all four differential atlases from saved consensus files.
+- `run_extended_analysis.py`: site conservation and between-/within-cell variability; writes `outputs/tables/extended_analysis/` and Figures 5–6.
+- `assemble_report_figures.py`: creates the report composites; see [figure documentation](outputs/figures/report_figures_README.md).
 - `check_task2.py`: prints run counts and within-/cross-cell comparison summaries.
-- `check_mcf7.py`: inspects optional raw MCF7 inputs; zero exact raw-ID overlap is expected before transcript-version normalization.
+- `check_mcf7.py`: optional diagnostic for exactly two raw CSVs at `sg_nex_prediction_results/MCF7/`, relative to the working directory; prints unnormalized transcript/site overlap and has no input-path argument.
 - `outputs/tables/`: final scientific tables, seven consensus Parquet files and cross-cell score matrix. `differential_atlas/positive_0.x/` folders are the authoritative differential outputs; `atlas_manifest.json` documents their fields.
-- `outputs/figures/`: final Figures 1–4 and supplementary `figS1_site_sharing`, in PNG/PDF/SVG formats.
+- `outputs/figures/`: Figures 1–6, supplementary Figures S1–S3, coverage and report composite figures, in PNG/PDF/SVG formats.
 - `requirements-task2.txt`: direct dependencies; `requirements-task2-lock.txt`: pinned tested runtime dependencies; `environment-task2.yml`: Conda setup.
+- `requirements.txt`: Streamlit Community Cloud entry point that includes `requirements-task2.txt`.
 
 At positive threshold 0.5 and absolute mean-score difference ≥0.30, the atlas contains **48,355 selected pair-site records**, **38,909 strict records**, **15,272 distinct transcript-position sites** and **8,311 distinct transcript IDs**. All exported candidates have `selected=True`; `n_positive_runs_at_0_5_<cell>` always counts per-run positives at 0.5, regardless of folder.
 
 ## Optional analysis commands
 
-Run from `task2/` in the installed environment:
+Run from `Task2/` in the installed environment. Inspect the included results without rewriting them:
 
 ```sh
 python check_task2.py
-python run_differential.py --output outputs --min-runs 2
-
-# Requires the original 23 CSVs, retained locally and excluded from Git:
-python task2_pipeline.py --input "/path/to/external/sg_nex_prediction_results" --output outputs
-python check_mcf7.py
+python -m unittest -v test_quality_control test_extended_analysis
 ```
 
-The large full matched-site focus CSV, raw predictions, duplicate ZIP/per-pair exports, and superseded two-cell notebook/script are excluded from submission and preserved locally. Existing final figures and results are used unchanged; regeneration is optional.
+Optional regeneration writes to `outputs/` and replaces the corresponding derived files. To rebuild from the original 23 prediction CSVs, use this order:
+
+```sh
+python task2_pipeline.py --input "/path/to/external/sg_nex_prediction_results" --output outputs
+python run_differential.py --output outputs --min-runs 2
+python run_extended_analysis.py --output outputs --input-dir "/path/to/external/sg_nex_prediction_results"
+python assemble_report_figures.py --output outputs
+```
+
+Raw inputs must use `<input>/<cell>/<cell>_repN_runM.csv` paths and contain `transcript_id`, `transcript_position` and `score` columns.
+
+If only rebuilding the atlases, start with `run_differential.py`; the included consensus files suffice. Extended analysis can run without `--input-dir` when `TASK2_RAW_DIR` is unset, but then omits individual run-pair distributions. Keep raw inputs outside the repository. Regeneration is unnecessary to use the included results or dashboard.
 
 ## Interpretation
 
-Sites are normalized transcript-ID/position pairs, not deduplicated genomic loci. Cross-cell comparisons require detection in ≥2 runs in each cell. Pearson uses continuous scores on shared observations; Jaccard is both positive / either positive within those shared observations. Differential candidates additionally require the higher consensus mean to exceed the chosen positive threshold. Strict support means the higher cell's minimum observed run score exceeds the lower cell's maximum; it is descriptive, not statistical significance. Run pairs are dependent and are not independent biological replicates.
+Sites are normalized transcript-ID/position pairs, not deduplicated genomic loci. Cross-cell comparisons require detection in ≥2 runs in each cell. Pearson uses continuous scores on shared observations; Jaccard is both positive / either positive within those shared observations. Differential candidates additionally require the higher consensus mean to meet the chosen positive threshold; atlas selection uses the float32 tolerance documented below. Strict support means the higher cell's minimum observed run score exceeds the lower cell's maximum; it is descriptive, not statistical significance. Run pairs are dependent and are not independent biological replicates.
 
 Ensembl version stripping assumes coordinate compatibility, particularly for MCF7, without remapping coordinates. Scores and differences are predictions, not experimentally validated methylation or calibrated methylation abundance.
 
@@ -69,7 +84,7 @@ python quality_control.py --input-dir "/path/to/external/sg_nex_prediction_resul
 python check_task2.py --qc-tests
 ```
 
-`quality_control.py` reuses canonical normalized transcript-ID/position keys, cached run statistics, pairwise comparisons, detection coverage, site sharing, and the Hct116/K562 consensus Parquet files. It writes only the following new artifacts:
+`quality_control.py` reuses canonical normalized transcript-ID/position keys, cached run statistics, pairwise comparisons, detection coverage, site sharing, and the Hct116/K562 consensus Parquet files. It writes the following QC artifacts without replacing the original scientific tables or Figures 1–6/S1:
 
 | Artifact | Contents |
 | --- | --- |
@@ -82,7 +97,7 @@ python check_task2.py --qc-tests
 | `outputs/figures/figS3_run_level_qc.{png,pdf,svg}` | Validated baseline positive rates and measured score distributions |
 | `outputs/figures/figS2_qc_robustness.{png,pdf,svg}` | Local candidate-count, baseline-Jaccard and strict-support heatmaps; magenta outline marks the fixed baseline |
 
-The dashboard presents scientific results through five pages, with brief reading guides and findings computed from the displayed results. Overview has a simple five-column run-statistics table and one short QC completion note. Detailed QC tables, diagnostics, downloads and Figures S2/S3 are retained here for reproducibility and reporting; they are not loaded or displayed by the dashboard. The Differential page presents the existing scientific Figure 4 as a clearly labeled fixed Hct116/K562 baseline, followed by threshold-dependent interactive comparisons.
+The dashboard presents scientific results through five pages, with brief reading guides and findings computed from the displayed results. Overview has a simple five-column run-statistics table and one short QC completion note. Detailed QC tables, diagnostics, downloads and Figures S2/S3 are retained here for reproducibility and reporting; they are not loaded or displayed by the dashboard. The Differential Atlas page retains scientific Figure 4 as a clearly labeled fixed Hct116/K562 baseline in a collapsed worked example, followed by threshold-dependent interactive comparisons.
 
 ### Run-level Quality Control
 
@@ -122,7 +137,7 @@ Figure S3 now contains two panels based on actual validated predictions: baselin
 
 The QC table contains actual raw counts, unique site counts, valid/invalid counts and percentages, missing-field counts, excess duplicates, duplicate-member counts, NaN/non-finite/infinite and out-of-range score counts, baseline positive counts/rates, mean/median/sample SD and exact quantiles. `nonfinite_scores` includes missing/malformed numeric scores; `nan_scores` and `infinite_scores` distinguish those cases. Diagnostic counts can overlap. Baseline `positive_rate = n_positive / n_valid_scored_sites`, with score ≥0.5 inclusive. Empty denominators are undefined (NA).
 
-**Streamlit requires only the scientific analysis tables and Figure 4**, without raw inputs or QC artifacts. Dashboard startup does not import the QC workflow, read the raw-input environment variable, discover source directories, parse raw CSVs or run audits. Removing QC CSVs or Figures S2/S3 has no effect on the scientific pages; the one QC note records the completed internal validation. The entry point alone reads `--input-dir` or `TASK2_RAW_DIR`. A source-roster mismatch stops the local audit before replacement outputs are written. Keep raw directories, local environment files and temporary databases out of Git; `.gitignore` preserves derived QC CSVs while excluding source run files. No new dependencies are needed (SQLite is in Python's standard library).
+**Streamlit uses the scientific analysis tables and `dashboard.css`; Figure 4 is optional.** It does not require raw inputs or QC artifacts. Dashboard startup does not import the QC workflow, read the raw-input environment variable, discover source directories, parse raw CSVs or run audits. Removing QC CSVs or Figures S2/S3 has no effect on the scientific pages; the one QC note records the completed internal validation. The entry point alone reads `--input-dir` or `TASK2_RAW_DIR`. A source-roster mismatch stops the local audit before replacement outputs are written. Keep raw directories, local environment files and temporary databases out of Git; `.gitignore` preserves derived QC CSVs while excluding source run files. No new dependencies are needed (SQLite is in Python's standard library).
 
 Prediction-level QC is not upstream sequencing/alignment QC. Read quality, alignment rates, mapping quality, RNA integrity, per-site read depth and signal errors are absent from the prediction CSV schema and are not inferred. Replicate independence remains unverified, and descriptive QC warnings do not establish technical failure or justify automatic exclusion.
 
@@ -136,7 +151,7 @@ Repeated `_repN` labels in H9, HEYA8 and Hct116 identify potentially repeated te
 
 ### Differential sensitivity and interpretation
 
-The matched universe is built once using the existing pipeline: **810,786 unique sites**, each observed in ≥2 runs per cell. Selection reuses the atlas rule: `abs_delta_mean >= delta_threshold - 1e-7` and `higher_mean_score >= positive_threshold - 1e-7`. The tolerance is the existing float32 boundary convention from `run_differential.py`. The earlier focus CSVs use exact comparisons; both conventions produce the same baseline here: **2,736 selected candidates and 2,230 strict candidates (81.5%)**. Regression checks compare canonical site sets against both saved focus CSVs and the authoritative atlas. Existing results and Figures 1–4/S1 are not overwritten.
+The Hct116–K562 matched universe is built once using the existing pipeline: **810,786 unique sites**, each observed in ≥2 runs per cell. Selection reuses the atlas rule: `abs_delta_mean >= delta_threshold - 1e-7` and `higher_mean_score >= positive_threshold - 1e-7`. The tolerance is the existing float32 boundary convention from `run_differential.py`. The earlier focus CSVs use exact comparisons; both conventions produce the same baseline here: **2,736 selected candidates and 2,230 strict candidates (81.5%)**. Regression checks compare canonical site sets against both saved focus CSVs and the authoritative atlas. Existing results and Figures 1–4/S1 are not overwritten.
 
 Figure S2 uses a **local grid of 25 combinations**: higher-cell mean-score thresholds 0.40/0.45/0.50/0.55/0.60 crossed with absolute mean-score difference thresholds 0.20/0.25/0.30/0.35/0.40. All comparisons use the same 810,786 matched sites, including combinations below the atlas export cutoff; selected-only atlases are therefore not used as the evaluable universe. The CSV retains the earlier broad grid (positive 0.3/0.5/0.7/0.9; difference 0.3/0.4/0.5/0.6/0.7), with **43 unique combinations** in total. The semicolon-delimited `grid_id` is `local`, `broad`, or `local;broad` for the two shared combinations. Each shared combination is stored once. Jaccard is candidate intersection divided by union against the fixed baseline; baseline retention is intersection divided by baseline size. Thus a relaxed selection can retain 100% of baseline candidates while its Jaccard falls because additional candidates enter. `strict_fraction` is strict count divided by selected count; `baseline_retention` is a proportion, and the existing percentage columns are retained for compatibility. For zero selected candidates, strict fraction is undefined (NA), not zero. All other empty denominators are also NA. Transcript stability compares the top 20 transcripts ranked by strict-supported site count, selected-site count, then maximum absolute score difference (all descending), with transcript ID ascending as the deterministic final tie break. This extends the existing ranking only for exact ties. The CSV gives top-set Jaccard, baseline top-20 retention, ordered IDs and mean absolute rank movement among common top transcripts; the last measure excludes dropped transcripts and should be read with retention.
 
@@ -156,10 +171,10 @@ Strict-support percentages in the local grid (rows: higher-cell positive thresho
 
 Strict observed-run range separation means the higher-mean cell's **minimum** observed run score exceeds the lower-mean cell's **maximum**, i.e. `conservative_gap > 0` (touching ranges do not qualify). This criterion remains fixed across the threshold grid and uses only detected runs. It is descriptive consistency, not statistical significance, an uncertainty model, or evidence from independent biological replication. Score differences can reflect model behavior, coverage and run effects; they do not establish experimentally validated differential m6A modifications or calibrated methylation changes. Transcript-version coordinate compatibility remains assumed. Biological interpretation requires independent experimental evidence and a defensible replicate design.
 
-Verification in the pinned Task 2 environment: nineteen focused tests pass (`check_task2.py --qc-tests`), including malformed/missing inputs, unavailable-output fallback, canonical normalization, strict touching-range boundaries, minimum-run eligibility, explicit candidate-set Jaccard/retention and strict fractions, zero-candidate handling, local/broad deduplication, row-order invariance, threshold monotonicity, deterministic rankings and exact saved-baseline regression. The original `check_task2.py` checks also run successfully. Streamlit AppTest checks cover all five scientific pages, threshold and transcript controls, the single Overview QC note, removal of diagnostic interfaces and downloads, and operation with absent or partial QC artifacts. Plot captions distinguish fixed baseline Figure 4 from interactive results and report findings from existing tables. SHA-256 comparisons confirm that all 74 pre-existing scientific output files are unchanged. No new dependencies are required; Streamlit Community Cloud continues to use the existing `requirements.txt` and pinned direct dependencies.
+Run `python -m unittest -v test_quality_control test_extended_analysis` from `Task2/` to verify QC, threshold boundaries, candidate-set regression, site sharing and variability. Streamlit AppTest coverage includes all five pages, threshold persistence across navigation, transcript controls, and operation with absent or partial QC artifacts. `python check_task2.py --qc-tests` runs only the QC test module. These checks use saved outputs and temporary fixtures; they do not rerun the full external raw-data audit. Streamlit Community Cloud uses `requirements.txt`, which includes the pinned direct dependencies.
 
 ## Dashboard navigation
 
-Each page addresses a separate question: coverage and positive rates (Overview), within-cell agreement and cutoff sensitivity (Reproducibility), between-cell similarity (Cross-cell Similarity), candidate prioritization (Differential Atlas), and site positions with optional observed run ranges (Transcript Explorer).
+Each page addresses a separate question: coverage and positive rates (Overview), within-cell agreement and cutoff sensitivity (Reproducibility), between-cell similarity (Cross-cell Similarity), candidate prioritization (Differential Atlas), and site positions with optional observed run ranges (Transcript Explorer). Overview shows coverage as run-level dots with median markers and zero horizontal jitter. Reproducibility retains the Jaccard threshold-sensitivity curve and run-pair table; the standalone Jaccard bar chart has been removed.
 
-The cross-cell matrix switches between continuous-score correlation and positive-site overlap. The fixed Hct116–K562 figure is available as a collapsed worked example. Ranking details are also collapsed to avoid repeating the plotted values. The score-difference control appears only on candidate-related pages. In Transcript Explorer, choose the comparison pair and displayed cell lines, then optionally show observed minimum–maximum ranges on the same score plot. Ranges are not confidence intervals. Transcript rankings are counts rather than enrichment estimates.
+The cross-cell matrix switches between continuous-score correlation and positive-site overlap. The fixed Hct116–K562 figure is available as a collapsed worked example. Ranking details are also collapsed to avoid repeating the plotted values. The positive cutoff defaults to **0.5**, with options **0.3/0.5/0.7/0.9**. The score-difference cutoff defaults to **0.30**, ranges from **0.30 to 0.90** in **0.05** steps, and appears only on Differential Atlas and Transcript Explorer. Both cutoffs persist across page navigation. In Transcript Explorer, choose the comparison pair and displayed cell lines, then optionally show observed minimum–maximum ranges on the same score plot. Ranges are not confidence intervals. Transcript rankings are counts rather than enrichment estimates.

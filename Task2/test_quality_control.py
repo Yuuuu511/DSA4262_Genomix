@@ -226,6 +226,57 @@ class QualityControlTests(unittest.TestCase):
             self.assertEqual(partial.iloc[0].n_positive, 2)  # Incomplete numerator/denominator cannot replace a cached population.
             self.assertEqual(partial.iloc[0].qc_status, "Input QC unavailable")
 
+    def test_dashboard_difference_cutoff_survives_navigation(self):
+        from streamlit.testing.v1 import AppTest
+
+        root = Path(__file__).resolve().parent
+        app = AppTest.from_file(str(root / "dashboard.py"), default_timeout=60).run()
+
+        def navigate(page):
+            app.sidebar.radio[0].set_value(page).run()
+            self.assertFalse(app.exception, [e.message for e in app.exception])
+
+        def candidate_count():
+            return next(m.value for m in app.metric if m.label == "Matching candidate sites")
+
+        self.assertEqual(len(app.sidebar.slider), 0)
+        navigate("Differential Atlas")
+        self.assertEqual(app.sidebar.select_slider[0].value, .5)
+        self.assertEqual(app.sidebar.slider[0].value, .3)
+        self.assertEqual(candidate_count(), "2,736")
+        app.sidebar.slider[0].set_value(.5).run()
+        self.assertEqual(candidate_count(), "526")
+        original_charts = [chart.proto.spec for chart in app.get("plotly_chart")]
+
+        for hidden_page in ("Overview", "Reproducibility", "Cross-cell Similarity"):
+            with self.subTest(page=hidden_page):
+                navigate(hidden_page)
+                self.assertEqual(len(app.sidebar.slider), 0)
+                # Cleanup must also survive further reruns while the widget is absent.
+                app.run()
+                navigate("Differential Atlas")
+                self.assertEqual(app.sidebar.slider[0].value, .5)
+                self.assertEqual(candidate_count(), "526")
+                self.assertEqual([chart.proto.spec for chart in app.get("plotly_chart")], original_charts)
+
+        navigate("Transcript Explorer")
+        self.assertEqual(app.sidebar.slider[0].value, .5)
+        app.text_input[0].set_value("ENST00000299238").run()
+        atlas = pd.read_parquet(root / "outputs/tables/differential_atlas/positive_0.5/differential_site_atlas.parquet")
+        for cutoff in (.5, .45):
+            app.sidebar.slider[0].set_value(cutoff).run()
+            expected = atlas[(atlas.transcript_id == "ENST00000299238")
+                             & (atlas.pair == "Hct116_vs_K562")
+                             & (atlas.abs_delta_mean >= cutoff - EPS)]
+            self.assertTrue(any(f"{len(expected)} Hct116–K562 differential candidates" in m.value for m in app.markdown))
+        navigate("Overview")
+        navigate("Transcript Explorer")
+        self.assertEqual(app.sidebar.slider[0].value, .45)
+        navigate("Differential Atlas")
+        self.assertEqual(app.sidebar.slider[0].value, .45)
+        expected = atlas[(atlas.pair == "Hct116_vs_K562") & (atlas.abs_delta_mean >= .45 - EPS)]
+        self.assertEqual(candidate_count(), f"{len(expected):,}")
+
     def test_streamlit_scientific_pages_without_qc_interface(self):
         from streamlit.testing.v1 import AppTest
         root = Path(__file__).resolve().parent
