@@ -460,7 +460,7 @@ def page_overview():
     with panel("overview_sites"):
         fig = px.box(df, x="cell_line", y="n_sites", points="all", color="cell_line",
                      color_discrete_map=COLORS, category_orders={"cell_line": cells}, hover_data=["run"])
-        fig.update_traces(pointpos=0, jitter=0.25)
+        fig.update_traces(pointpos=0, jitter=0)
         fig.update_layout(title="Number of scored sites in each run", xaxis_title="Cell line", yaxis_title="Sites per run", showlegend=False, height=340)
         plot(fig)
         explain_plot(
