@@ -261,11 +261,10 @@ class QualityControlTests(unittest.TestCase):
         no_qc_interface(app, overview=True)
         self.assertLess(sum(app.dataframe[0].value["Positive predictions"]), sum(baseline_counts))
         counts = app.dataframe[0].value["Positive predictions"].tolist()
-        app.sidebar.slider[0].set_value(.5).run()
+        self.assertEqual(len(app.sidebar.slider), 0)
         self.assertEqual(app.dataframe[0].value["Positive predictions"].tolist(), counts)
         app.sidebar.select_slider[0].set_value(.5).run()
-        app.sidebar.slider[0].set_value(.3).run()
-        for page, charts in (("Reproducibility",3),("Cross-cell Similarity",3),("Differential Atlas",4)):
+        for page, charts in (("Reproducibility",2),("Cross-cell Similarity",2),("Differential Atlas",3)):
             app.sidebar.radio[0].set_value(page).run()
             no_qc_interface(app)
             self.assertEqual(len(app.get("plotly_chart")), charts)
@@ -290,7 +289,7 @@ class QualityControlTests(unittest.TestCase):
         app.sidebar.radio[0].set_value("Transcript Explorer").run()
         app.text_input[0].set_value("ENST00000299238").run()
         no_qc_interface(app)
-        self.assertEqual(len(app.get("plotly_chart")), 2)
+        self.assertEqual(len(app.get("plotly_chart")), 1)
         self.assertTrue(any("15 Hct116–K562 differential candidates" in m.value for m in app.markdown))
         # Captions and plots refer to the same stored candidates and scientific values.
         spec = app.get("plotly_chart")[0].proto.spec
