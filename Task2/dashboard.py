@@ -187,19 +187,15 @@ with st.sidebar:
         key="positive_threshold",
     )
 
-    delta_t = st.slider(
-        "Score-difference cutoff",
-        min_value=0.30,
-        max_value=0.90,
-        value=0.30,
-        step=0.05,
-        key="differential_threshold",
-    )
-
-    st.caption(
-        "The positive cutoff sets which sites count as positive. "
-        "The difference cutoff sets how far apart two cell lines’ average scores must be to select a differential candidate."
-    )
+    if page in ["Differential Atlas", "Transcript Explorer"]:
+        delta_t = st.slider(
+            "Score-difference cutoff", min_value=0.30, max_value=0.90,
+            value=0.30, step=0.05, key="differential_threshold",
+        )
+        st.caption("Select candidates using both the positive cutoff and the gap between cell-line averages.")
+    else:
+        delta_t = st.session_state.get("differential_threshold", 0.30)
+        st.caption("The positive cutoff affects positive calls and overlap. Continuous-score correlations and site coverage do not change.")
 
 
 atlas_dir = ATLAS_ROOT / f"positive_{threshold_tag(positive_t)}"
@@ -362,10 +358,10 @@ def show_heatmap(mat, title, measure):
 
 
 def show_threshold_header():
-    st.caption(
-        f"Current cutoffs: positive score ≥ {positive_t:.1f}; "
-        f"gap between cell-line averages ≥ {delta_t:.2f}."
-    )
+    text = f"Positive score cutoff: ≥ {positive_t:.1f}."
+    if page in ["Differential Atlas", "Transcript Explorer"]:
+        text += f" Candidate score difference: ≥ {delta_t:.2f}."
+    st.caption(text)
 
 
 def explain_plot(reading, finding):
@@ -458,13 +454,18 @@ def page_overview():
         )
 
     with panel("overview_sites"):
-        fig = px.box(df, x="cell_line", y="n_sites", points="all", color="cell_line",
-                     color_discrete_map=COLORS, category_orders={"cell_line": cells}, hover_data=["run"])
-        fig.update_traces(pointpos=0, jitter=0)
+        fig = px.strip(df, x="cell_line", y="n_sites", color="cell_line",
+                       color_discrete_map=COLORS, category_orders={"cell_line": cells},
+                       hover_data=["run"])
+        fig.update_traces(jitter=0, marker=dict(size=9, opacity=0.75))
+        medians = df.groupby("cell_line").n_sites.median().reindex(cells)
+        fig.add_trace(go.Scatter(x=medians.index, y=medians.values, mode="markers",
+                                 marker=dict(symbol="line-ew", size=22, color="#26364a", line=dict(width=2)),
+                                 name="Median", hovertemplate="%{x}<br>Median sites: %{y:,.0f}<extra></extra>"))
         fig.update_layout(title="Number of scored sites in each run", xaxis_title="Cell line", yaxis_title="Sites per run", showlegend=False, height=340)
         plot(fig)
         explain_plot(
-            "Each dot is a run, grouped by cell line. Boxes summarize site counts; groups with only two runs give a limited view of variation.",
+            "Each dot is a run; the dark horizontal marker shows the cell-line median. This shows coverage size, not whether runs observe the same positions.",
             f"Site counts range from {int(df.n_sites.min()):,} to {int(df.n_sites.max()):,} per run."
         )
 
@@ -514,10 +515,8 @@ def page_reproducibility():
     st.write("Compare runs from the same cell line to see how consistently they score shared sites.")
     show_threshold_header()
 
-    left, right = st.columns(2, gap="medium")
-
     # Continuous score correlations do not depend on threshold.
-    with left, panel("rep_scores"):
+    with panel("rep_scores"):
         fig = go.Figure()
 
         for cell in cells:
@@ -565,34 +564,6 @@ def page_reproducibility():
 
     # Average Jaccard similarity at the selected positive threshold.
     jac_col = f"jaccard_{threshold_tag(positive_t)}"
-
-    with right, panel("rep_overlap"):
-        mean = (
-            replicate.groupby("cell_line", as_index=False)
-            [jac_col].mean()
-        )
-        fig = px.bar(
-            mean, x="cell_line", y=jac_col,
-            color="cell_line",
-            color_discrete_map=COLORS,
-        )
-        fig.update_layout(
-            showlegend=False,
-            title=f"Positive-site overlap at score ≥{positive_t:.1f}",
-            xaxis_title="Cell line",
-            yaxis_title="Average Jaccard similarity",
-            height=425,
-        )
-        hi = mean[jac_col].max()
-        fig.update_yaxes(
-            range=[0, min(1, hi + 0.03)]
-        )
-        plot(fig)
-        best = mean.loc[mean[jac_col].idxmax()]
-        explain_plot(
-            "Jaccard similarity measures how many predicted-positive sites two runs share, out of sites positive in either run. Bars average this overlap across run pairs, using only sites scored in both runs; 1 means identical positive sets.",
-            f"At score ≥{positive_t:.1f}, {best.cell_line} has the highest average overlap ({best[jac_col]:.3f}). Runs can have similar score patterns but different positive calls."
-        )
 
     with panel("rep_thresholds"):
         st.subheader("How the positive cutoff changes overlap")
@@ -662,7 +633,7 @@ def page_reproducibility():
                 "pearson", "spearman", jac_col
             ]],
             column_config={"run_a":"Run 1", "run_b":"Run 2", "n_shared":"Shared sites", "pearson":"Pearson", "spearman":"Spearman", jac_col:"Positive-site overlap"},
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
         st.caption(
@@ -682,31 +653,25 @@ def page_similarity():
 
     jac_col = f"positive_jaccard_{threshold_tag(positive_t)}"
 
-    left, right = st.columns(2, gap="medium")
-    with left, panel("cross_scores"):
-        mat = similarity_matrix(cross, "pearson")
-        show_heatmap(mat, "Agreement in prediction scores", "Pearson correlation")
-        strongest = cross.loc[cross.pearson.idxmax()]
-        explain_plot(
-            "Each square compares two cell lines at shared sites, using scores averaged across runs. Pearson correlation is higher when their score patterns agree; darker blue means stronger agreement.",
-            f"{strongest.cell_a} and {strongest.cell_b} have the highest score correlation ({strongest.pearson:.3f})."
-        )
-    with right, panel("cross_overlap"):
-        mat = similarity_matrix(cross, jac_col)
-        show_heatmap(
-            mat,
-            f"Positive-site overlap (score ≥ {positive_t:.1f})", "Jaccard similarity"
-        )
-        strongest = cross.loc[cross[jac_col].idxmax()]
-        explain_plot(
-            "Jaccard similarity measures shared positive sites out of all sites positive in either cell line, using only shared scored sites. Darker blue means more overlap: 0 means none, and 1 means identical positive calls.",
-            f"At score ≥{positive_t:.1f}, {strongest.cell_a} and {strongest.cell_b} have the highest positive-site overlap ({strongest[jac_col]:.3f})."
-        )
-
-    st.caption(
-        "Only sites observed in at least two runs per cell line are compared. "
-        "Diagonal squares are left blank; each heatmap has its own color scale."
-    )
+    measure = st.radio("Comparison measure", ["Score correlation", "Positive-site overlap"], horizontal=True)
+    with panel("cross_matrix"):
+        if measure == "Score correlation":
+            mat = similarity_matrix(cross, "pearson")
+            show_heatmap(mat, "Agreement in prediction scores", "Pearson correlation")
+            strongest = cross.loc[cross.pearson.idxmax()]
+            explain_plot(
+                "Each square compares continuous consensus scores at shared sites. Higher Pearson correlation means scores rise and fall together; it does not measure positive-call agreement.",
+                f"{strongest.cell_a} and {strongest.cell_b} have the highest score correlation ({strongest.pearson:.3f}).",
+            )
+        else:
+            mat = similarity_matrix(cross, jac_col)
+            show_heatmap(mat, f"Positive-site overlap (score ≥ {positive_t:.1f})", "Jaccard similarity")
+            strongest = cross.loc[cross[jac_col].idxmax()]
+            explain_plot(
+                "Jaccard measures shared positive sites out of sites positive in either cell line, restricted to shared scored sites. This answers a different question from continuous-score correlation.",
+                f"At score ≥{positive_t:.1f}, {strongest.cell_a} and {strongest.cell_b} have the highest positive-site overlap ({strongest[jac_col]:.3f}).",
+            )
+    st.caption("Only sites observed in at least two runs per cell line are compared. Diagonal squares are blank. The two measures use different color scales; compare values within the selected measure.")
 
     with panel("cross_pair"):
         a, b = st.columns(2, gap="medium")
@@ -801,7 +766,7 @@ def show_baseline_differential():
 def page_atlas():
     st.title("Differential Analysis")
     st.write("Find shared sites whose average prediction scores differ between cell lines.")
-    with panel("baseline"):
+    with st.expander("Worked example: Hct116–K562 at fixed cutoffs"):
         show_baseline_differential()
     st.subheader("Interactive cell-line comparisons")
     show_threshold_header()
@@ -905,27 +870,9 @@ def page_atlas():
         st.info("No candidates match these filters. Try a lower cutoff or clear the transcript filter.")
         return
 
-    with panel("atlas_direction"):
-        fig = px.bar(
-            subset.higher_cell.value_counts()
-            .rename_axis("higher_cell")
-            .reset_index(name="n_sites"),
-            x="higher_cell", y="n_sites",
-            labels={"higher_cell":"Higher-scoring cell line", "n_sites":"Candidate sites"},
-            color="higher_cell",
-            color_discrete_map=COLORS,
-        )
-        fig.update_layout(
-            title="Which cell line has the higher score?",
-            showlegend=False,
-            height=340,
-        )
-        plot(fig)
-        directions = subset.higher_cell.value_counts()
-        explain_plot(
-            "Bars count the candidates shown, grouped by the cell line with the higher average score. Your filters apply to all plots and tables below.",
-            f"{directions.index[0]} has the higher score at {int(directions.iloc[0]):,} of the {len(subset):,} sites shown."
-        )
+    directions = subset.higher_cell.value_counts()
+    st.caption("Higher-scoring cell line among filtered candidates: " +
+               "; ".join(f"{cell}: {int(directions.get(cell, 0)):,}" for cell in [ca, cb]) + ".")
 
     # Pair columns use the original atlas orientation,
     # which may differ from the user's dropdown order.
@@ -980,35 +927,35 @@ def page_atlas():
             )
         )
 
-        left, right = st.columns(2, gap="medium")
-        with left:
-            top = rankings.head(15).iloc[::-1]
-            fig = px.bar(
-                top, x="n_strict", y="transcript_id",
-                orientation="h",
-                hover_data=["n_selected", "max_abs_delta"],
-                labels={"transcript_id":"Transcript", "n_strict":"Strict-supported sites", "n_selected":"Candidates", "max_abs_delta":"Largest score difference"},
-            )
-            fig.update_layout(
-                title="Transcripts with the most strict-supported sites",
-                xaxis_title="Strict-supported sites",
-                yaxis_title="",
-                height=500,
-            )
-            plot(fig)
-            leader = rankings.iloc[0]
-            explain_plot(
-                "Bars count strict-supported sites in each transcript. Ties are broken by total selected sites, then the largest score difference; the table shows these values.",
-                f"{leader.transcript_id} ranks first with {int(leader.n_strict)} strict-supported sites among {int(leader.n_selected)} candidates."
-            )
-        with right:
+        st.caption("Rankings count sites, not enrichment: transcripts with more evaluable positions have more opportunities to contain candidates.")
+        top = rankings.head(15).iloc[::-1]
+        fig = px.bar(
+            top, x="n_strict", y="transcript_id",
+            orientation="h",
+            hover_data=["n_selected", "max_abs_delta"],
+            labels={"transcript_id":"Transcript", "n_strict":"Strict-supported sites", "n_selected":"Candidates", "max_abs_delta":"Largest score difference"},
+        )
+        fig.update_layout(
+            title="Transcripts with the most strict-supported sites",
+            xaxis_title="Strict-supported sites",
+            yaxis_title="",
+            height=500,
+        )
+        plot(fig)
+        leader = rankings.iloc[0]
+        explain_plot(
+            "Bars count strict-supported sites in each transcript. Ties are broken by total selected sites, then the largest score difference; the table shows these values.",
+            f"{leader.transcript_id} ranks first with {int(leader.n_strict)} strict-supported sites among {int(leader.n_selected)} candidates."
+        )
+        with st.expander("View ranking details"):
             st.dataframe(
                 rankings.head(100),
                 column_config={"transcript_id":"Transcript", "n_selected":"Candidates", "n_strict":"Strict-supported sites", "max_abs_delta":"Largest score difference"},
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 height=500,
             )
+
 
     with panel("atlas_table"):
         st.subheader("Sites matching your filters")
@@ -1024,7 +971,7 @@ def page_atlas():
             column_config={"transcript_id":"Transcript", "transcript_position":"Position", "higher_cell":"Higher-scoring cell line",
                            "abs_delta_mean":"Score difference", "replicate_supported":"Strict support", "conservative_gap":"Gap between score ranges",
                            col_a:f"{ca} average score", col_b:f"{cb} average score"},
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
         csv_download(
@@ -1039,7 +986,7 @@ def page_atlas():
                 column_config={"cell_a":"Cell line A", "cell_b":"Cell line B", "pair":"Cell-line pair", "n_matched_sites":"Shared sites",
                                "n_selected":"Candidates", "n_strict":"Strict-supported sites", "selected_fraction":"Selected fraction",
                                "strict_support_rate":"Strict-supported fraction of candidates", "strict_fraction_of_matched":"Strict-supported fraction of shared sites"},
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -1076,7 +1023,7 @@ def page_transcript():
                 .head(15)
             )
             st.subheader("Transcripts to explore")
-            st.dataframe(suggestions, column_config={"_index":"Transcript", "n_pairs":"Cell-line pairs", "n_strict":"Strict-supported sites"}, use_container_width=True)
+            st.dataframe(suggestions, column_config={"_index":"Transcript", "n_pairs":"Cell-line pairs", "n_strict":"Strict-supported sites"}, width="stretch")
         return
 
     query = re.sub(
@@ -1129,9 +1076,35 @@ def page_transcript():
             int(tx.predicted_positive.sum()),
         )
 
+    available = tx.cell_line.unique().tolist()
+    left, right = st.columns(2)
+    with left:
+        default_a = st.session_state.get("atlas_a", "Hct116")
+        ta = st.selectbox("Comparison cell line A", available,
+                          index=available.index(default_a) if default_a in available else 0,
+                          key="transcript_a")
+    other = [cell for cell in available if cell != ta]
+    with right:
+        default_b = st.session_state.get("atlas_b", "K562")
+        tb = st.selectbox("Comparison cell line B", other,
+                          index=other.index(default_b) if default_b in other else 0,
+                          key="transcript_b") if other else None
+    shown = st.multiselect("Cell lines to display", available,
+                           default=[ta] + ([tb] if tb else []))
+    if not shown:
+        st.info("Choose at least one cell line to display.")
+        return
+    show_ranges = st.checkbox("Show observed run-score ranges", value=False,
+                              help="Minimum to maximum across observed runs, not confidence intervals.")
+    visible_tx = tx[tx.cell_line.isin(shown)].copy()
+    visible_tx["range_plus"] = (visible_tx.max_score - visible_tx.mean_score).clip(lower=0)
+    visible_tx["range_minus"] = (visible_tx.mean_score - visible_tx.min_score).clip(lower=0)
+
     with panel("transcript_scores"):
         fig = px.scatter(
-            tx, x="transcript_position", y="mean_score",
+            visible_tx, x="transcript_position", y="mean_score",
+            error_y="range_plus" if show_ranges else None,
+            error_y_minus="range_minus" if show_ranges else None,
             color="cell_line",
             color_discrete_map=COLORS,
             symbol="predicted_positive",
@@ -1146,11 +1119,11 @@ def page_transcript():
         )
         for trace in fig.data:
             trace.name = trace.name.replace(", True", ", positive").replace(", False", ", below cutoff")
-        focus = active_atlas[(active_atlas.transcript_id == query) & (active_atlas.pair == pair_name("Hct116", "K562"))]
-        highlighted = tx[tx.cell_line.isin(["Hct116", "K562"]) & tx.transcript_position.isin(focus.transcript_position)]
+        focus = active_atlas[(active_atlas.transcript_id == query) & (active_atlas.pair == pair_name(ta, tb))] if tb else active_atlas.iloc[:0]
+        highlighted = visible_tx[visible_tx.cell_line.isin([ta, tb]) & visible_tx.transcript_position.isin(focus.transcript_position)]
         if len(highlighted):
             fig.add_trace(go.Scatter(x=highlighted.transcript_position, y=highlighted.mean_score,
-                mode="markers", name="Hct116–K562 differential site", marker=dict(symbol="circle-open", size=13, color="#222222", line=dict(width=1.5)),
+                mode="markers", name=f"{ta}–{tb} differential site", marker=dict(symbol="circle-open", size=13, color="#222222", line=dict(width=1.5)),
                 hovertext=highlighted.cell_line, hovertemplate="%{hovertext}<br>Position %{x}<br>Score %{y:.3f}<extra>Differential candidate</extra>"))
         fig.add_hline(
             y=positive_t,
@@ -1167,61 +1140,12 @@ def page_transcript():
         plot(fig)
 
         explain_plot(
-            "Read positions along the transcript from left to right; colors identify cell lines and height shows average prediction score. Filled dots meet the positive cutoff, hollow dots fall below it, and the dashed line marks that cutoff; larger black rings highlight Hct116–K562 differential candidates.",
-            f"{query} has {len(focus):,} Hct116–K562 differential candidates at the current cutoffs."
+            "Read positions along the transcript from left to right; colors identify cell lines and height shows average prediction score. Filled dots meet the positive cutoff, hollow dots fall below it, and the dashed line marks that cutoff; larger black rings highlight differential candidates for the selected comparison. Optional vertical bars show observed min–max ranges, not confidence intervals.",
+            f"{query} has {len(focus):,} {ta}–{tb} differential candidates at the current cutoffs." if tb else "Only one cell line has eligible observations for this transcript."
         )
         if len(focus):
             higher = focus.higher_cell.value_counts()
             st.caption(f"Of these candidates, {int(higher.iloc[0])} score higher in {higher.index[0]}.")
-
-    with panel("transcript_ranges"):
-        st.subheader("How scores vary between runs")
-        cell = st.selectbox(
-            "Choose a cell line",
-            tx.cell_line.unique().tolist(),
-        )
-        sub = tx[
-            tx.cell_line == cell
-        ].sort_values("transcript_position")
-
-        fig = go.Figure(
-            go.Scatter(
-                x=sub.transcript_position,
-                y=sub.mean_score,
-                mode="markers",
-                marker=dict(
-                    color=COLORS.get(cell, "#4477AA"),
-                    size=7,
-                ),
-                error_y=dict(
-                    type="data",
-                    symmetric=False,
-                    array=(
-                        sub.max_score - sub.mean_score
-                    ).clip(lower=0),
-                    arrayminus=(
-                        sub.mean_score - sub.min_score
-                    ).clip(lower=0),
-                    visible=True,
-                ),
-            )
-        )
-        fig.add_hline(
-            y=positive_t, line_dash="dash",
-            line_color="#555555"
-        )
-        fig.update_layout(
-            title=f"{cell}: average scores and observed ranges",
-            xaxis_title="Transcript position",
-            yaxis_title="Prediction score",
-            height=390,
-        )
-        fig.update_yaxes(range=[-0.03, 1.03])
-        plot(fig)
-        explain_plot(
-            "Dots show average scores; vertical bars span the lowest to highest score observed across runs, not a confidence interval. The dashed line marks the positive cutoff.",
-            f"In {cell}, {int(sub.predicted_positive.sum()):,} of {len(sub):,} sites meet the positive cutoff. Longer vertical bars indicate more variation between runs."
-        )
 
     with panel("transcript_table"):
         st.subheader("Scores by position and cell line")
@@ -1235,7 +1159,7 @@ def page_transcript():
         st.dataframe(
             wide.style.format("{:.3f}", na_rep="—"),
             column_config={"_index":"Transcript position"},
-            use_container_width=True,
+            width="stretch",
         )
 
         # Differential annotations use BOTH global thresholds.
@@ -1267,7 +1191,7 @@ def page_transcript():
             st.dataframe(
                 summary,
                 column_config={"pair":"Cell-line pair", "higher_cell":"Higher-scoring cell line", "n_candidates":"Candidates", "n_strict":"Strict-supported sites", "max_abs_delta":"Largest score difference"},
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
             csv_download(
